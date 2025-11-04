@@ -27,6 +27,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 USER nextjs
 
-EXPOSE ${WEB_PORT}
+EXPOSE 3000
 
 CMD ["npm", "start"]
