@@ -34,7 +34,7 @@ export default function LoginPage() {
     const promise = (async () => {
       const result = await validateAdminLogin(data);
       if (result.success) return result;
-      throw new Error(result.message);
+      throw new Error(result.toastMessage);
     })();
 
     // adjuntar el catch inmediatamente para evitar "Uncaught (in promise)"
@@ -44,7 +44,7 @@ export default function LoginPage() {
     toaster.promise(promise, {
       success: (result) => {
         setTimeout(() => router.push("/admin"), 400);
-        return { description: result.message };
+        return { description: result.toastMessage };
       },
       error: (err: any) => ({
         description: err?.message ?? "Error desconocido",
@@ -83,18 +83,18 @@ export default function LoginPage() {
             <Flex direction="column" align="center" mt={4} gap={4}>
               <form onSubmit={onSubmit}>
                 <Stack gap="4" align="flex-start" maxW="sm">
-                  <Field.Root invalid={!!errors.username}>
-                    <Field.Label>Username</Field.Label>
+                  <Field.Root invalid={!!errors.email}>
+                    <Field.Label>Email</Field.Label>
                     <InputGroup startElement={<LuUser />}>
-                      <Input {...register("username")} placeholder="Username" />
+                      <Input {...register("email")} placeholder="Email" />
                     </InputGroup>
                     <Field.ErrorText>
-                      {errors.username?.message}
+                      {errors.email?.message}
                     </Field.ErrorText>
                   </Field.Root>
 
                   <Field.Root invalid={!!errors.password}>
-                    <Field.Label>Password</Field.Label>
+                    <Field.Label>Contraseña</Field.Label>
                     <PasswordInput {...register("password")} />
                     <Field.ErrorText>
                       {errors.password?.message}

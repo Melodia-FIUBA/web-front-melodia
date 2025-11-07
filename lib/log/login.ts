@@ -1,6 +1,7 @@
-
+import { titleCase } from '../../utils/str.utils';
+import { saveUserDataToLocalStorage } from './cookies';
 export interface FormValues {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -8,33 +9,42 @@ export interface FormValues {
 // Para aparecer en un toaster en el cliente
 export const validateAdminLogin = async (
   data: FormValues
-): Promise<{ success: boolean; message?: string }> => {
+): Promise<{ success: boolean; toastMessage?: string }> => {
   try {
-    return { success: true, message: "Inicio de sesión exitoso" };
+    //return { success: true, toastMessage: "Inicio de sesión exitoso" };
 
-    const res = await fetch("/api/login", {
+    const login_url = new URL(process.env.NEXT_PUBLIC_LOGIN_PATH ?? "", process.env.NEXT_PUBLIC_MELODIA_USERS_API_URL ?? "");
+
+    const res = await fetch(login_url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
-    const body = await res.json().catch(() => ({}));
-    // TODO: manejar token o sesión aquí
-    if (res.ok) {
+    const body = await res?.json();
+
+    if (res.ok && body?.user?.role === "admin") {
       const message = "Inicio de sesión exitoso";
-      return { success: true, message: message };
+      saveUserDataToLocalStorage(body.token, body.refresh_token, body.user);
+      return { success: true, toastMessage: message };
+    } else if (res.ok && body) {
+      return {
+        success: false,
+        toastMessage: "Solo los administradores pueden iniciar sesión aquí",
+      };
     } else {
       // rechazar con mensaje para que toaster.promise muestre el error
       return {
         success: false,
-        message: body?.message ?? "Credenciales inválidas",
+        toastMessage: titleCase(body?.error) ?? "Credenciales inválidas",
       };
     }
   } catch (err: unknown) {
     return {
       success: false,
-      message:
+      toastMessage:
         err instanceof Error ? err.message : "Ocurrió un error desconocido",
     };
   }
 };
+
