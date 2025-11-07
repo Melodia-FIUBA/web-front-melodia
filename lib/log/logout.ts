@@ -1,8 +1,12 @@
+import { getRuntimeConfig } from "../config/envs";
 import { clearUserDataFromLocalStorage, getToken } from "./cookies";
 
 export async function logout() {
   try {
-    const logout_url = new URL(process.env.NEXT_PUBLIC_LOGOUT_PATH ?? "", process.env.NEXT_PUBLIC_MELODIA_USERS_API_URL ?? "");
+
+    const cfg = await getRuntimeConfig();
+
+    const logout_url = new URL(cfg.LOGOUT_PATH, cfg.MELODIA_USERS_API_URL);
 
     const token = getToken();
 

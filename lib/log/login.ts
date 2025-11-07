@@ -1,4 +1,5 @@
 import { titleCase } from '../../utils/str.utils';
+import { getRuntimeConfig } from '../config/envs';
 import { saveUserDataToLocalStorage } from './cookies';
 export interface FormValues {
   email: string;
@@ -12,8 +13,9 @@ export const validateAdminLogin = async (
 ): Promise<{ success: boolean; toastMessage?: string }> => {
   try {
     //return { success: true, toastMessage: "Inicio de sesión exitoso" };
+    const cfg = await getRuntimeConfig();
 
-    const login_url = new URL(process.env.NEXT_PUBLIC_LOGIN_PATH ?? "", process.env.NEXT_PUBLIC_MELODIA_USERS_API_URL ?? "");
+    const login_url = new URL(cfg.LOGIN_PATH, cfg.MELODIA_USERS_API_URL);
 
     const res = await fetch(login_url, {
       method: "POST",
