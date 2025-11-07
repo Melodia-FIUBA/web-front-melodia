@@ -17,7 +17,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useForm } from "react-hook-form";
 import { toaster } from "@/components/ui/toaster";
 import { FormValues, validateAdminLogin } from "@/lib/log/login";
-
+import { Suspense } from "react";
+import LoadBackgroundElement from "@/components/ui/loadElements";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function LoginPage() {
     const promise = (async () => {
       const result = await validateAdminLogin(data);
       if (result.success) return result;
-      throw new Error(result.message);
+      throw new Error(result.toastMessage);
     })();
 
     // adjuntar el catch inmediatamente para evitar "Uncaught (in promise)"
@@ -43,62 +44,70 @@ export default function LoginPage() {
     toaster.promise(promise, {
       success: (result) => {
         setTimeout(() => router.push("/admin"), 400);
-        return { description: result.message };
+        return { description: result.toastMessage };
       },
-      error: (err: any) => ({ description: err?.message ?? "Error desconocido" }),
+      error: (err: any) => ({
+        description: err?.message ?? "Error desconocido",
+      }),
       loading: {},
     });
   });
 
   return (
-    <Box
-      minH="100vh"
-      bgImage="url('/melodia-background.png')"
-      bgSize="cover"
-      bgPos={"center"}
-      bgRepeat="no-repeat"
-      fontFamily="sans"
-    >
+    <Suspense fallback={<LoadBackgroundElement />}>
       <Box
-        bg="blackAlpha.700"
         minH="100vh"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
+        bgImage="url('/melodia-background.png')"
+        bgSize="cover"
+        bgPos={"center"}
+        bgRepeat="no-repeat"
+        fontFamily="sans"
       >
-        <Box textAlign="center" color="white" px={6}>
-          <Flex>
-            <Heading
-              mb={4}
-              fontSize={{ base: "2xl", md: "4xl" }}
-              fontWeight="bold"
-            >
-              Iniciar Sesión
-            </Heading>
-          </Flex>
-          <Flex direction="column" align="center" mt={4} gap={4}>
-            <form onSubmit={onSubmit}>
-              <Stack gap="4" align="flex-start" maxW="sm">
-                <Field.Root invalid={!!errors.username}>
-                  <Field.Label>Username</Field.Label>
-                  <InputGroup startElement={<LuUser />}>
-                    <Input {...register("username")} placeholder="Username" />
-                  </InputGroup>
-                  <Field.ErrorText>{errors.username?.message}</Field.ErrorText>
-                </Field.Root>
+        <Box
+          bg="blackAlpha.700"
+          minH="100vh"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Box textAlign="center" color="white" px={6}>
+            <Flex>
+              <Heading
+                mb={4}
+                fontSize={{ base: "2xl", md: "4xl" }}
+                fontWeight="bold"
+              >
+                Iniciar Sesión
+              </Heading>
+            </Flex>
+            <Flex direction="column" align="center" mt={4} gap={4}>
+              <form onSubmit={onSubmit}>
+                <Stack gap="4" align="flex-start" maxW="sm">
+                  <Field.Root invalid={!!errors.email}>
+                    <Field.Label>Email</Field.Label>
+                    <InputGroup startElement={<LuUser />}>
+                      <Input {...register("email")} placeholder="Email" />
+                    </InputGroup>
+                    <Field.ErrorText>
+                      {errors.email?.message}
+                    </Field.ErrorText>
+                  </Field.Root>
 
-                <Field.Root invalid={!!errors.password}>
-                  <Field.Label>Password</Field.Label>
-                  <PasswordInput {...register("password")} />
-                  <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
-                </Field.Root>
+                  <Field.Root invalid={!!errors.password}>
+                    <Field.Label>Contraseña</Field.Label>
+                    <PasswordInput {...register("password")} />
+                    <Field.ErrorText>
+                      {errors.password?.message}
+                    </Field.ErrorText>
+                  </Field.Root>
 
-                <Button type="submit">Iniciar Sesión</Button>
-              </Stack>
-            </form>
-          </Flex>
+                  <Button type="submit">Iniciar Sesión</Button>
+                </Stack>
+              </form>
+            </Flex>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </Suspense>
   );
 }

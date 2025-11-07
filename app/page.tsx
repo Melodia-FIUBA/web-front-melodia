@@ -3,12 +3,13 @@
 import { Box, Button, Heading, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
+import LoadBackgroundElement from "../components/ui/loadElements";
 
 export default function Home() {
   const router = useRouter();
 
   return (
-    <Suspense>
+    <Suspense fallback={<LoadBackgroundElement />}>
     <Box
       minH="100vh"
       bgImage="url('/melodia-background.png')"
