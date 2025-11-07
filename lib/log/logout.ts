@@ -16,14 +16,13 @@ export async function logout() {
       headers,
     });
 
-    const body = await res?.json();
-
     if (res.ok) {
       clearUserDataFromLocalStorage();
       window.location.href = "/";
     }
 
   } catch (err: unknown) {
-    console.error("Error during logout:", err);
+    console.error("Error clearing cache:", err);
+    window.location.href = "/";
   }
 }
