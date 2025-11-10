@@ -1,3 +1,5 @@
+"use client";
+
 import { Box, Heading, Text, Badge, Stack } from "@chakra-ui/react";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import { useRouter } from "next/navigation";
