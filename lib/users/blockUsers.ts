@@ -38,7 +38,6 @@ async function blockUnblockUserById(userId: string, isActive: boolean): Promise<
 
         const body = await res?.json();
 
-        console.log(res, body);
 
         if (res.ok && body) {
             const user: UserProfile = {

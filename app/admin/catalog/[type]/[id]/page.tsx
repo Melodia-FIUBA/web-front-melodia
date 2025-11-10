@@ -22,11 +22,6 @@ export default function CatalogDetailPage({ params }: Props) {
     return null;
   }
 
-  // TODO:/api/catalog/${id}
-  // For now we reuse the existing fetchCatalogResults helper (which returns mock data).
-  // In production you'd call an endpoint like `/api/catalog/${id}`.
-  //const res = await fetchCatalogResults({});
-  //const item: CatalogDetails | undefined = res?.items.find((it) => it.id === id);
   const item: CatalogDetails | undefined = {
     id: "1",
     title: "Mocked Item",

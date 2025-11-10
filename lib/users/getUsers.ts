@@ -44,7 +44,6 @@ export async function getUsersList(limit: number, offset: number): Promise<[User
 
         const body = await res?.json();
 
-        console.log(res, body);
 
         if (res.ok && body?.users) {
             const users: UserDetails[] = body.users.map((user: any) => ({
