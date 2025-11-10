@@ -31,11 +31,10 @@ import LoadBackgroundElement from "./ui/loadElements";
 
 interface UsersTableProps {
   users: UserDetails[];
-  total: number | null;
   loading: boolean;
 }
 
-export function UsersTable({ users, total, loading }: UsersTableProps) {
+export function UsersTable({ users, loading }: UsersTableProps) {
   
 
   if (loading) {

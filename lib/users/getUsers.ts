@@ -11,13 +11,13 @@ export interface UserDetails {
 }
 
 
-export async function getUsersList(offset: number): Promise<[UserDetails[],number]> {
+export async function getUsersList(limit: number, offset: number): Promise<[UserDetails[],number]> {
 
     try {
         //return { success: true, toastMessage: "Inicio de sesión exitoso" };
         const cfg = await getRuntimeConfig();
 
-        const users_list_url = new URL(`${cfg.LIST_USERS_PATH}?offset=${offset}&limit=10`, cfg.MELODIA_USERS_BACKOFFICE_API_URL);
+        const users_list_url = new URL(`${cfg.LIST_USERS_PATH}?offset=${offset}&limit=${limit}`, cfg.MELODIA_USERS_BACKOFFICE_API_URL);
 
         const token = getToken();
 

@@ -13,7 +13,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
 
   const [offset, setOffset] = useState(0);
-  const PAGE_SIZE = 10;
+  const USERS_LIST_LIMIT = 12;
 
   const router = useRouter();
   
@@ -31,7 +31,7 @@ export default function UsersPage() {
     const fetchUsers = async () => {
       setLoading(true);
 
-      const [users, total]: [UserDetails[], number] = await getUsersList(offset);
+      const [users, total]: [UserDetails[], number] = await getUsersList(USERS_LIST_LIMIT,offset);
 
       setUsers(users);
       setTotal(total);
@@ -45,12 +45,12 @@ export default function UsersPage() {
     <Box p={6}>
       <VStack align="stretch" gap={6}>
         <Heading size="xl">Gestión de usuarios</Heading>
-        <UsersTable users={users} total={total} loading={loading} />
+        <UsersTable users={users} loading={loading} />
         {/* Paginado */}
         <Box>
           <HStack justify="center" gap={4} mt={2}>
             <Button
-              onClick={() => setOffset((prev) => Math.max(0, prev - PAGE_SIZE))}
+              onClick={() => setOffset((prev) => Math.max(0, prev - USERS_LIST_LIMIT))}
               disabled={offset === 0 || loading}
               variant="outline"
             >
@@ -58,12 +58,12 @@ export default function UsersPage() {
             </Button>
 
             <Text fontSize="sm" color="gray.600">
-              Página {Math.floor(offset / PAGE_SIZE) + 1} / {(total ?? 0)}
+              Página {Math.floor(offset / USERS_LIST_LIMIT) + 1} / {(total ?? 0)}
             </Text>
 
             <Button
-              onClick={() => setOffset((prev) => prev + PAGE_SIZE)}
-              disabled={loading || users.length < PAGE_SIZE}
+              onClick={() => setOffset((prev) => prev + USERS_LIST_LIMIT)}
+              disabled={loading || users.length < USERS_LIST_LIMIT}
               variant="outline"
             >
               Siguiente
