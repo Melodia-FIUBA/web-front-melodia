@@ -15,7 +15,7 @@ import { FiLock, FiUnlock } from "react-icons/fi";
 import { toaster } from "@/components/ui/toaster";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 import LoadBackgroundElement from "@/components/ui/loadElements";
-import { getUserById, UserProfile } from "@/lib/users/getUsers";
+import { getLastSessionById, getUserById, UserProfile } from "@/lib/users/getUsers";
 import { blockUserById, unblockUserById } from "@/lib/users/blockUsers";
 import { BlockUserDialog } from "@/components/blockUserDialog";
 
@@ -44,7 +44,8 @@ export default function UserDetailPage() {
       setLoading(true);
 
       const user : UserProfile | null = await getUserById(userId);
-
+      const user_last_connection = await getLastSessionById(userId) ?? "";
+      user!.lastConnection = user_last_connection;
       setUser(user);
       setLoading(false);
     };
@@ -243,3 +244,4 @@ export default function UserDetailPage() {
     </Box>
   );
 }
+

@@ -11,17 +11,17 @@ export interface UserDetails {
 }
 
 export interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  email_verified: boolean;
-  role: string;
-  status: "active" | "blocked";
-  registeredAt: string;
-  lastConnection: string;
+    id: string;
+    username: string;
+    email: string;
+    email_verified: boolean;
+    role: string;
+    status: "active" | "blocked";
+    registeredAt: string;
+    lastConnection: string;
 }
 
-export async function getUsersList(limit: number, offset: number): Promise<[UserDetails[],number]> {
+export async function getUsersList(limit: number, offset: number): Promise<[UserDetails[], number]> {
 
     try {
         //return { success: true, toastMessage: "Inicio de sesión exitoso" };
@@ -56,16 +56,16 @@ export async function getUsersList(limit: number, offset: number): Promise<[User
             return [users, body.pagination?.total ?? 0];
         } else {
             // rechazar con mensaje para que toaster.promise muestre el error
-            return [[],0]
+            return [[], 0]
         }
     } catch {
-        return [[],0];
+        return [[], 0];
     }
 
 }
 
 
-export async function getUserById(userId: string): Promise<UserProfile | null> { 
+export async function getUserById(userId: string): Promise<UserProfile | null> {
     try {
         //return { success: true, toastMessage: "Inicio de sesión exitoso" };
         const cfg = await getRuntimeConfig();
@@ -99,6 +99,39 @@ export async function getUserById(userId: string): Promise<UserProfile | null> {
                 lastConnection: body.last_connection ?? "",
             };
             return user;
+        } else {
+            return null;
+        }
+    } catch {
+        return null;
+    }
+}
+
+
+export async function getLastSessionById(userId: string): Promise<string | null> {
+    try {
+        //return { success: true, toastMessage: "Inicio de sesión exitoso" };
+        const cfg = await getRuntimeConfig();
+        const sessionsUrl = new URL(`${cfg.SESSIONS_PATH}?offset=0&user_id=${userId}&limit=1`, cfg.MELODIA_USERS_BACKOFFICE_API_URL);
+
+        const token = getToken();
+
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(sessionsUrl, {
+            method: "GET",
+            headers: headers,
+        });
+
+        const body = await res?.json();
+
+        if (res.ok && body.sessions && body.sessions.length > 0) {
+            
+            return body.sessions[0].created_at ?? null;
         } else {
             return null;
         }

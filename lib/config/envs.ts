@@ -10,6 +10,7 @@ type RuntimeConfig = {
     LOGOUT_PATH: string;
     LIST_USERS_PATH: string;
     CRUD_USERS_ID_PATH: string;
+    SESSIONS_PATH: string;
 };
 
 // Memo en módulo para no pegarle mil veces al endpoint
@@ -36,6 +37,7 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                     LOGOUT_PATH: "",
                     LIST_USERS_PATH: "",
                     CRUD_USERS_ID_PATH: "",
+                    SESSIONS_PATH: "",
                 };
             }
         })();

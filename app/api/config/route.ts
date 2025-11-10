@@ -24,6 +24,7 @@ export async function GET(request: Request) {
             LOGOUT_PATH: process.env.LOGOUT_PATH ?? "",
             LIST_USERS_PATH: process.env.LIST_USERS_PATH ?? "",
             CRUD_USERS_ID_PATH: process.env.CRUD_USERS_ID_PATH ?? "",
+            SESSIONS_PATH: process.env.SESSIONS_PATH ?? "",
         };
     } else {
         payload = {
