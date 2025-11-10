@@ -8,25 +8,16 @@ import {
   Button,
   Stack,
   Card,
-  Portal,
   Spinner,
 } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
 import { FiLock, FiUnlock } from "react-icons/fi";
 import { toaster } from "@/components/ui/toaster";
-import {
-  DialogActionTrigger,
-  DialogBody,
-  DialogCloseTrigger,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-  DialogTitle,
-} from "@chakra-ui/react";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 import LoadBackgroundElement from "@/components/ui/loadElements";
 import { getUserById, UserProfile } from "@/lib/users/getUsers";
+import { blockUserById, unblockUserById } from "@/lib/users/blockUsers";
+import { BlockUserDialog } from "@/components/blockUserDialog";
 
 export default function UserDetailPage() {
   const params = useParams();
@@ -35,6 +26,7 @@ export default function UserDetailPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const router = useRouter();
 
@@ -50,7 +42,7 @@ export default function UserDetailPage() {
     }
     const fetchUser = async () => {
       setLoading(true);
-      
+
       const user : UserProfile | null = await getUserById(userId);
 
       setUser(user);
@@ -58,31 +50,37 @@ export default function UserDetailPage() {
     };
 
     void fetchUser();
-  }, [userId]);
+  }, [userId, reloadKey]);
 
-  const handleToggleBlock = () => {
+  const handleToggleBlock = async () => {
     if (!user) return;
 
-    // TODO: Implementar llamada a API
-    console.log(
-      user.status === "blocked" ? "Desbloquear:" : "Bloquear:",
-      user.id
-    );
+    const isBlocked = user.status === "blocked";
+    const result = isBlocked 
+      ? await unblockUserById(user.id) 
+      : await blockUserById(user.id);
 
-    const newStatus = user.status === "blocked" ? "active" : "blocked";
-    setUser({ ...user, status: newStatus });
-
-    toaster.create({
-      title:
-        newStatus === "blocked" ? "Usuario bloqueado" : "Usuario desbloqueado",
-      description: `${user.username} ha sido ${
-        newStatus === "blocked" ? "bloqueado" : "desbloqueado"
-      }`,
-      type: "success",
-      duration: 3000,
-    });
-
-    setBlockDialogOpen(false);
+    if (result !== null) {
+      toaster.create({
+        title: isBlocked ? "Usuario desbloqueado" : "Usuario bloqueado",
+        description: `${user.username} ha sido ${
+          isBlocked ? "desbloqueado" : "bloqueado"
+        }`,
+        type: "success",
+        duration: 3000,
+      });
+      setBlockDialogOpen(false);
+      // Recargar los datos del usuario
+      setReloadKey((k) => k + 1);
+    } else {
+      toaster.create({
+        title: "Error al actualizar usuario",
+        description: `No se pudo ${isBlocked ? "desbloquear" : "bloquear"} a ${user.username}. Inténtalo de nuevo más tarde.`,
+        type: "error",
+        duration: 3000,
+      });
+      setBlockDialogOpen(false);
+    }
   };
 
   if (loading) {
@@ -234,39 +232,13 @@ export default function UserDetailPage() {
         </Card.Root>
 
         {/* Dialog de confirmación para bloquear/desbloquear */}
-        <DialogRoot
-          open={blockDialogOpen}
-          onOpenChange={(e) => setBlockDialogOpen(e.open)}
-        >
-          <Portal>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {isBlocked ? "Desbloquear usuario" : "Bloquear usuario"}
-                </DialogTitle>
-              </DialogHeader>
-              <DialogBody>
-                <Text>
-                  ¿Estás seguro de que deseas{" "}
-                  {isBlocked ? "desbloquear" : "bloquear"} a{" "}
-                  <strong>{user.username}</strong>?
-                </Text>
-              </DialogBody>
-              <DialogFooter>
-                <DialogActionTrigger asChild>
-                  <Button variant="outline">Cancelar</Button>
-                </DialogActionTrigger>
-                <Button
-                  colorScheme={isBlocked ? "green" : "orange"}
-                  onClick={handleToggleBlock}
-                >
-                  {isBlocked ? "Desbloquear" : "Bloquear"}
-                </Button>
-              </DialogFooter>
-              <DialogCloseTrigger />
-            </DialogContent>
-          </Portal>
-        </DialogRoot>
+        <BlockUserDialog
+          isOpen={blockDialogOpen}
+          onClose={() => setBlockDialogOpen(false)}
+          onConfirm={handleToggleBlock}
+          username={user.username}
+          isBlocked={isBlocked}
+        />
       </Stack>
     </Box>
   );

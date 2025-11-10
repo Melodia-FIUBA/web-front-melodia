@@ -1,42 +1,23 @@
 "use client";
 
-import {
-  Box,
-  Text,
-  Spinner,
-  Table,
-  IconButton,
-  Portal,
-  Button,
-  Stack,
-} from "@chakra-ui/react";
-import { FiEdit2, FiLock, FiUnlock, FiTrash2, FiEye } from "react-icons/fi";
+import { Box, Text, Spinner, Table } from "@chakra-ui/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toaster } from "@/components/ui/toaster";
-import {
-  DialogActionTrigger,
-  DialogBody,
-  DialogCloseTrigger,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-  DialogTitle,
-  DialogTrigger,
-} from "@chakra-ui/react";
-import { NativeSelectField, NativeSelectRoot } from "@chakra-ui/react";
 import { UserDetails } from "@/lib/users/getUsers";
 import LoadBackgroundElement from "./ui/loadElements";
-
+import { RowActions } from "./usersTableRowActions";
 
 interface UsersTableProps {
   users: UserDetails[];
   loading: boolean;
+  onActionComplete?: () => void;
 }
 
-export function UsersTable({ users, loading }: UsersTableProps) {
-  
+export function UsersTable({
+  users,
+  loading,
+  onActionComplete,
+}: UsersTableProps) {
+  const [openEditId, setOpenEditId] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -63,16 +44,19 @@ export function UsersTable({ users, loading }: UsersTableProps) {
 
   return (
     <Box borderWidth={1} borderRadius="lg" overflow="hidden">
-
       <Box overflowX="auto">
         <Table.Root size="sm" variant="line">
           <Table.Header>
             <Table.Row>
-              <Table.ColumnHeader minW="180px">Nombre de usuario</Table.ColumnHeader>
-              <Table.ColumnHeader minW="200px">Correo electrónico</Table.ColumnHeader>
+              <Table.ColumnHeader minW="180px">
+                Nombre de usuario
+              </Table.ColumnHeader>
+              <Table.ColumnHeader minW="200px">
+                Correo electrónico
+              </Table.ColumnHeader>
               <Table.ColumnHeader minW="120px">Rol</Table.ColumnHeader>
               <Table.ColumnHeader minW="120px">Estado</Table.ColumnHeader>
-              <Table.ColumnHeader minW="300px" textAlign="center">
+              <Table.ColumnHeader minW="300px" textAlign="center" fontWeight="bold">
                 Acciones
               </Table.ColumnHeader>
             </Table.Row>
@@ -111,7 +95,12 @@ export function UsersTable({ users, loading }: UsersTableProps) {
                   </Box>
                 </Table.Cell>
                 <Table.Cell textAlign="center">
-                  <RowActions user={user} />
+                  <RowActions
+                    user={user}
+                    openEditId={openEditId}
+                    setOpenEditId={setOpenEditId}
+                    onActionComplete={onActionComplete}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))}
@@ -119,201 +108,5 @@ export function UsersTable({ users, loading }: UsersTableProps) {
         </Table.Root>
       </Box>
     </Box>
-  );
-}
-
-function RowActions({ user }: { user: UserDetails }) {
-  const router = useRouter();
-  const [editRoleOpen, setEditRoleOpen] = useState(false);
-  const [blockOpen, setBlockOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(user.role);
-
-  const isBlocked = user.status === "blocked";
-
-  const handleViewDetails = () => {
-    router.push(`/admin/users/${user.id}`);
-  };
-
-  const handleEditRole = () => {
-    // TODO: Implementar llamada a API
-    console.log("Editar rol:", user.id, "nuevo rol:", selectedRole);
-    toaster.create({
-      title: "Rol actualizado",
-      description: `El rol de ${user.username} ha sido actualizado a ${selectedRole}`,
-      type: "success",
-      duration: 3000,
-    });
-    setEditRoleOpen(false);
-  };
-
-  const handleToggleBlock = () => {
-    // TODO: Implementar llamada a API
-    console.log(isBlocked ? "Desbloquear:" : "Bloquear:", user.id);
-    toaster.create({
-      title: isBlocked ? "Usuario desbloqueado" : "Usuario bloqueado",
-      description: `${user.username} ha sido ${isBlocked ? "desbloqueado" : "bloqueado"}`,
-      type: "success",
-      duration: 3000,
-    });
-    setBlockOpen(false);
-  };
-
-  const handleDelete = () => {
-    // TODO: Implementar llamada a API
-    console.log("Eliminar:", user.id);
-    toaster.create({
-      title: "Usuario eliminado",
-      description: `${user.username} ha sido eliminado del sistema`,
-      type: "success",
-      duration: 3000,
-    });
-    setDeleteOpen(false);
-  };
-
-  return (
-    <Stack direction="row" gap={2} justify="center">
-      {/* Ver detalles */}
-      <IconButton
-        aria-label="Ver detalles"
-        size="sm"
-        variant="ghost"
-        colorScheme="blue"
-        onClick={handleViewDetails}
-      >
-        <FiEye />
-      </IconButton>
-
-      {/* Editar rol */}
-      <DialogRoot open={editRoleOpen} onOpenChange={(e) => setEditRoleOpen(e.open)}>
-        <DialogTrigger asChild>
-          <IconButton
-            aria-label="Editar rol"
-            size="sm"
-            variant="ghost"
-            colorScheme="blue"
-            disabled={isBlocked}
-          >
-            <FiEdit2 />
-          </IconButton>
-        </DialogTrigger>
-        <Portal>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Editar rol de usuario</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <Stack gap={4}>
-                <Box>
-                  <Text fontWeight={500} mb={2}>
-                    Usuario: {user.username}
-                  </Text>
-                  <Text fontSize="sm" color="gray.600" mb={4}>
-                    Selecciona el nuevo rol para este usuario
-                  </Text>
-                </Box>
-                <NativeSelectRoot>
-                  <NativeSelectField
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                  >
-                    <option value="user">Usuario</option>
-                    <option value="admin">Administrador</option>
-                    {/* solo roles válidos: user, admin */}
-                  </NativeSelectField>
-                </NativeSelectRoot>
-              </Stack>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogActionTrigger>
-              <Button colorScheme="blue" onClick={handleEditRole}>
-                Confirmar
-              </Button>
-            </DialogFooter>
-            <DialogCloseTrigger />
-          </DialogContent>
-        </Portal>
-      </DialogRoot>
-
-      {/* Bloquear/Desbloquear */}
-      <DialogRoot open={blockOpen} onOpenChange={(e) => setBlockOpen(e.open)}>
-        <DialogTrigger asChild>
-          <IconButton
-            aria-label={isBlocked ? "Desbloquear" : "Bloquear"}
-            size="sm"
-            variant="ghost"
-            colorScheme={isBlocked ? "green" : "orange"}
-          >
-            {isBlocked ? <FiUnlock /> : <FiLock />}
-          </IconButton>
-        </DialogTrigger>
-        <Portal>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {isBlocked ? "Desbloquear usuario" : "Bloquear usuario"}
-              </DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <Text>
-                ¿Estás seguro de que deseas {isBlocked ? "desbloquear" : "bloquear"} a{" "}
-                <strong>{user.username}</strong>?
-              </Text>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogActionTrigger>
-              <Button
-                colorScheme={isBlocked ? "green" : "orange"}
-                onClick={handleToggleBlock}
-              >
-                {isBlocked ? "Desbloquear" : "Bloquear"}
-              </Button>
-            </DialogFooter>
-            <DialogCloseTrigger />
-          </DialogContent>
-        </Portal>
-      </DialogRoot>
-
-      {/* Eliminar */}
-      <DialogRoot open={deleteOpen} onOpenChange={(e) => setDeleteOpen(e.open)}>
-        <DialogTrigger asChild>
-          <IconButton
-            aria-label="Eliminar"
-            size="sm"
-            variant="ghost"
-            colorScheme="red"
-            disabled={isBlocked}
-          >
-            <FiTrash2 />
-          </IconButton>
-        </DialogTrigger>
-        <Portal>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Eliminar usuario</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <Text>
-                ¿Estás seguro de que deseas eliminar a <strong>{user.username}</strong>? Esta
-                acción no se puede deshacer.
-              </Text>
-            </DialogBody>
-            <DialogFooter>
-              <DialogActionTrigger asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DialogActionTrigger>
-              <Button colorScheme="red" onClick={handleDelete}>
-                Eliminar
-              </Button>
-            </DialogFooter>
-            <DialogCloseTrigger />
-          </DialogContent>
-        </Portal>
-      </DialogRoot>
-    </Stack>
   );
 }
