@@ -1,16 +1,28 @@
-
-
 import { Box, Heading, Text, Badge, Stack } from "@chakra-ui/react";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { isAdminLoggedIn } from "@/lib/log/cookies";
 
 type Props = {
   params: { type: string; id: string };
 };
 
-export default async function CatalogDetailPage({ params }: Props) {
+export default function CatalogDetailPage({ params }: Props) {
   const { id } = params;
+  const router = useRouter();
 
-  // TODO:/api/catalog/${id} 
+  useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  if (!isAdminLoggedIn()) {
+    return null;
+  }
+
+  // TODO:/api/catalog/${id}
   // For now we reuse the existing fetchCatalogResults helper (which returns mock data).
   // In production you'd call an endpoint like `/api/catalog/${id}`.
   //const res = await fetchCatalogResults({});
@@ -29,7 +41,9 @@ export default async function CatalogDetailPage({ params }: Props) {
     return (
       <Box p={6}>
         <Heading size="lg">Item no encontrado</Heading>
-        <Text mt={2} color="gray.600">No se encontró el ítem con id {id}.</Text>
+        <Text mt={2} color="gray.600">
+          No se encontró el ítem con id {id}.
+        </Text>
       </Box>
     );
   }
@@ -44,24 +58,37 @@ export default async function CatalogDetailPage({ params }: Props) {
         </Box>
         <Box>
           <Text fontWeight={600}>Artista</Text>
-          <Text>{item.mainArtist ?? '-'}</Text>
+          <Text>{item.mainArtist ?? "-"}</Text>
         </Box>
         <Box>
           <Text fontWeight={600}>Colección</Text>
-          <Text>{item.collection?.title ?? item.collection?.id ?? '-'}</Text>
+          <Text>{item.collection?.title ?? item.collection?.id ?? "-"}</Text>
         </Box>
         <Box>
           <Text fontWeight={600}>Publicado</Text>
-          <Text>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : '-'}</Text>
+          <Text>
+            {item.publishedAt
+              ? new Date(item.publishedAt).toLocaleDateString()
+              : "-"}
+          </Text>
         </Box>
         <Box>
           <Text fontWeight={600}>Estado</Text>
-          <Badge colorScheme={
-            item.effectiveStatus === 'published' ? 'green' :
-            item.effectiveStatus === 'scheduled' ? 'yellow' :
-            item.effectiveStatus === 'blocked-admin' ? 'red' :
-            item.effectiveStatus === 'not-available-region' ? 'orange' : 'gray'
-          }>{item.effectiveStatus}</Badge>
+          <Badge
+            colorScheme={
+              item.effectiveStatus === "published"
+                ? "green"
+                : item.effectiveStatus === "scheduled"
+                ? "yellow"
+                : item.effectiveStatus === "blocked-admin"
+                ? "red"
+                : item.effectiveStatus === "not-available-region"
+                ? "orange"
+                : "gray"
+            }
+          >
+            {item.effectiveStatus}
+          </Badge>
         </Box>
       </Stack>
     </Box>

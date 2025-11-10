@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
 export function saveUserDataToLocalStorage(token: string, refreshToken: string, user: any) {
     localStorage.setItem("token", token);
@@ -30,4 +31,23 @@ export function clearUserDataFromLocalStorage() {
     localStorage.removeItem("user.username");
     localStorage.removeItem("user.email");
     localStorage.removeItem("user.role");
+}
+
+// Devuelve si el admin está logueado en el cliente para el pedido de configuración
+export function adminLoginData() : [string, string] {
+    try {
+        const role = localStorage.getItem("user.role");
+        const token = localStorage.getItem("token");
+        return [token ?? "", role ?? ""];
+    } catch {
+        return ["", ""];
+    }
+}
+
+// Devuelve si hay admin logueado 
+export function isAdminLoggedIn(): boolean {
+    const [token, role] = adminLoginData();
+    const isToken = token !== "";
+    const isRole = role === "admin";
+    return isToken && isRole;
 }

@@ -11,7 +11,7 @@ import {
   Portal,
   Breadcrumb,
 } from "@chakra-ui/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { FiHome, FiUsers, FiLock, FiUnlock } from "react-icons/fi";
 import { toaster } from "@/components/ui/toaster";
 import {
@@ -24,6 +24,7 @@ import {
   DialogRoot,
   DialogTitle,
 } from "@chakra-ui/react";
+import { isAdminLoggedIn } from "@/lib/log/cookies";
 
 interface UserProfile {
   id: string;
@@ -43,7 +44,18 @@ export default function UserDetailPage() {
   const [loading, setLoading] = useState(true);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
 
+  const router = useRouter();
+
   useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      return;
+    }
     const fetchUser = async () => {
       setLoading(true);
       // TODO: Reemplazar con llamada real a /api/users/${userId}
@@ -70,18 +82,24 @@ export default function UserDetailPage() {
     if (!user) return;
 
     // TODO: Implementar llamada a API
-    console.log(user.status === "blocked" ? "Desbloquear:" : "Bloquear:", user.id);
-    
+    console.log(
+      user.status === "blocked" ? "Desbloquear:" : "Bloquear:",
+      user.id
+    );
+
     const newStatus = user.status === "blocked" ? "active" : "blocked";
     setUser({ ...user, status: newStatus });
 
     toaster.create({
-      title: newStatus === "blocked" ? "Usuario bloqueado" : "Usuario desbloqueado",
-      description: `${user.username} ha sido ${newStatus === "blocked" ? "bloqueado" : "desbloqueado"}`,
+      title:
+        newStatus === "blocked" ? "Usuario bloqueado" : "Usuario desbloqueado",
+      description: `${user.username} ha sido ${
+        newStatus === "blocked" ? "bloqueado" : "desbloqueado"
+      }`,
       type: "success",
       duration: 3000,
     });
-    
+
     setBlockDialogOpen(false);
   };
 
@@ -132,7 +150,12 @@ export default function UserDetailPage() {
 
         {/* Header con nombre y estado */}
         <Box>
-          <Stack direction="row" justify="space-between" align="center" flexWrap="wrap">
+          <Stack
+            direction="row"
+            justify="space-between"
+            align="center"
+            flexWrap="wrap"
+          >
             <Box>
               <Heading size="2xl">{user.username}</Heading>
               <Box mt={2}>
@@ -245,7 +268,10 @@ export default function UserDetailPage() {
         </Card.Root>
 
         {/* Dialog de confirmación para bloquear/desbloquear */}
-        <DialogRoot open={blockDialogOpen} onOpenChange={(e) => setBlockDialogOpen(e.open)}>
+        <DialogRoot
+          open={blockDialogOpen}
+          onOpenChange={(e) => setBlockDialogOpen(e.open)}
+        >
           <Portal>
             <DialogContent>
               <DialogHeader>
@@ -255,7 +281,8 @@ export default function UserDetailPage() {
               </DialogHeader>
               <DialogBody>
                 <Text>
-                  ¿Estás seguro de que deseas {isBlocked ? "desbloquear" : "bloquear"} a{" "}
+                  ¿Estás seguro de que deseas{" "}
+                  {isBlocked ? "desbloquear" : "bloquear"} a{" "}
                   <strong>{user.username}</strong>?
                 </Text>
               </DialogBody>

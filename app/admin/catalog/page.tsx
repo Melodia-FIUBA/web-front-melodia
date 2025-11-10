@@ -10,6 +10,7 @@ import {
   handleApplyFilters as handleApplyFiltersLib,
 } from "@/lib/catalog/searchCatalog";
 import { CatalogResultsTable } from "@/components/catalogResultsTable";
+import { isAdminLoggedIn } from "@/lib/log/cookies";
 
 export default function CatalogPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,9 +56,17 @@ export default function CatalogPage() {
       }
     );
   }
+  useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      router.push("/login");
+    }
+  }, [router]);
 
   // Read initial filter/search state from URL on mount
   useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      return;
+    }
     try {
       const params = new URLSearchParams(window.location.search);
       const searchParam = params.get("q") ?? "";
@@ -89,6 +98,10 @@ export default function CatalogPage() {
 
   // Push changes to URL when filters/search change
   useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      return;
+    }
+    
     if (!initFromUrl) return; // avoid overwriting URL before initial params have been applied
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);

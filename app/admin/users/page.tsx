@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Box, VStack, Heading, HStack, Button, Text } from "@chakra-ui/react";
 import { UsersTable } from "@/components/usersTable";
 import { getUsersList, UserDetails } from "@/lib/users/getUsers";
+import { isAdminLoggedIn } from "@/lib/log/cookies";
+import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserDetails[]>([]);
@@ -13,7 +15,19 @@ export default function UsersPage() {
   const [offset, setOffset] = useState(0);
   const PAGE_SIZE = 10;
 
+  const router = useRouter();
+  
   useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      return;
+    }
+
     const fetchUsers = async () => {
       setLoading(true);
 

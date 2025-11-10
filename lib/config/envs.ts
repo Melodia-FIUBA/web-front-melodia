@@ -1,5 +1,7 @@
 "use client";
 
+import { adminLoginData } from "@/lib/log/cookies";
+
 type RuntimeConfig = {
     MELODIA_USERS_API_URL: string;
     MELODIA_SONGS_BACKOFFICE_API_URL: string;
@@ -15,12 +17,15 @@ let configPromise: Promise<RuntimeConfig> | null = null;
 
 export function getRuntimeConfig(): Promise<RuntimeConfig> {
     if (!configPromise) {
-        configPromise = fetch("/api/config", { cache: "no-store" })
-            .then((r) => {
+        // Usamos un IIFE async para poder leer adminLoginData (localStorage) y construir la URL
+        configPromise = (async () => {
+            const [token, role] = adminLoginData();
+            const params = new URLSearchParams({ token: token , rol: role});
+            try {
+                const r = await fetch(`/api/config?${params.toString()}`, { cache: "no-store" });
                 if (!r.ok) throw new Error("No se pudo cargar la configuración");
-                return r.json();
-            })
-            .catch((e) => {
+                return (await r.json()) as RuntimeConfig;
+            } catch (e) {
                 // Fallback seguro (strings vacíos) + surface del error
                 console.error("Runtime config error:", e);
                 return {
@@ -32,7 +37,8 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                     LIST_USERS_PATH: "",
                     CRUD_USERS_ID_PATH: "",
                 };
-            });
+            }
+        })();
     }
     return configPromise;
 }

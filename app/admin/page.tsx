@@ -1,10 +1,25 @@
 "use client";
 
 import LoadBackgroundElement from "@/components/ui/loadElements";
+import { isAdminLoggedIn } from "@/lib/log/cookies";
+
 import { Box, Flex, Heading, Text } from "@chakra-ui/react";
-import { Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
 export default function AdminPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAdminLoggedIn()) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  if (!isAdminLoggedIn()) {
+    return null;
+  }
+
   return (
     <Flex direction="column" gap={4}>
       <Suspense fallback={<LoadBackgroundElement size="menu" />}>
