@@ -2,8 +2,12 @@
 
 type RuntimeConfig = {
     MELODIA_USERS_API_URL: string;
+    MELODIA_SONGS_BACKOFFICE_API_URL: string;
+    MELODIA_USERS_BACKOFFICE_API_URL: string;
     LOGIN_PATH: string;
     LOGOUT_PATH: string;
+    LIST_USERS_PATH: string;
+    CRUD_USERS_ID_PATH: string;
 };
 
 // Memo en módulo para no pegarle mil veces al endpoint
@@ -21,8 +25,12 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                 console.error("Runtime config error:", e);
                 return {
                     MELODIA_USERS_API_URL: "",
+                    MELODIA_SONGS_BACKOFFICE_API_URL: "",
+                    MELODIA_USERS_BACKOFFICE_API_URL: "",
                     LOGIN_PATH: "",
                     LOGOUT_PATH: "",
+                    LIST_USERS_PATH: "",
+                    CRUD_USERS_ID_PATH: "",
                 };
             });
     }

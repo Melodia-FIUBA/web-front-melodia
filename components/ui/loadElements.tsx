@@ -6,7 +6,11 @@ export default function LoadBackgroundElement({size = "full"}: {size?: string}) 
   if (size === "menu") {
     height = "3xl";
     width = "full";
-  }else{ //full
+  }else if (size == "users_menu") {
+    height = "xl";
+    width = "full";
+  }
+  else{
     height = "4xl";
     width = "full";
   }

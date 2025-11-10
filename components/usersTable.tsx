@@ -25,14 +25,9 @@ import {
   DialogTrigger,
 } from "@chakra-ui/react";
 import { NativeSelectField, NativeSelectRoot } from "@chakra-ui/react";
+import { UserDetails } from "@/lib/users/getUsers";
+import LoadBackgroundElement from "./ui/loadElements";
 
-export interface UserDetails {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-  status: "active" | "blocked";
-}
 
 interface UsersTableProps {
   users: UserDetails[];
@@ -50,6 +45,7 @@ export function UsersTable({ users, total, loading }: UsersTableProps) {
         <Text mt={2} color="gray.600">
           Cargando usuarios…
         </Text>
+        <LoadBackgroundElement size="users_menu"></LoadBackgroundElement>
       </Box>
     );
   }
@@ -67,11 +63,6 @@ export function UsersTable({ users, total, loading }: UsersTableProps) {
 
   return (
     <Box borderWidth={1} borderRadius="lg" overflow="hidden">
-      <Box p={4} borderBottomWidth={1}>
-        <Text fontWeight={600} color="gray.700">
-          Usuarios ({total ?? 0})
-        </Text>
-      </Box>
 
       <Box overflowX="auto">
         <Table.Root size="sm" variant="line">
