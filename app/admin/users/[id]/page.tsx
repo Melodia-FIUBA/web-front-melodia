@@ -9,10 +9,10 @@ import {
   Stack,
   Card,
   Portal,
-  Breadcrumb,
+  Spinner,
 } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
-import { FiHome, FiUsers, FiLock, FiUnlock } from "react-icons/fi";
+import { FiLock, FiUnlock } from "react-icons/fi";
 import { toaster } from "@/components/ui/toaster";
 import {
   DialogActionTrigger,
@@ -25,16 +25,8 @@ import {
   DialogTitle,
 } from "@chakra-ui/react";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
-
-interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-  status: "active" | "blocked";
-  registeredAt: string;
-  lastConnection: string;
-}
+import LoadBackgroundElement from "@/components/ui/loadElements";
+import { getUserById, UserProfile } from "@/lib/users/getUsers";
 
 export default function UserDetailPage() {
   const params = useParams();
@@ -58,20 +50,10 @@ export default function UserDetailPage() {
     }
     const fetchUser = async () => {
       setLoading(true);
-      // TODO: Reemplazar con llamada real a /api/users/${userId}
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      const user : UserProfile | null = await getUserById(userId);
 
-      const mockUser: UserProfile = {
-        id: userId,
-        username: "juan.perez",
-        email: "juan.perez@example.com",
-        role: "admin",
-        status: "active",
-        registeredAt: "2024-01-15T10:30:00Z",
-        lastConnection: "2025-11-08T14:22:00Z",
-      };
-
-      setUser(mockUser);
+      setUser(user);
       setLoading(false);
     };
 
@@ -105,10 +87,14 @@ export default function UserDetailPage() {
 
   if (loading) {
     return (
-      <Box p={6}>
-        <Text>Cargando perfil...</Text>
-      </Box>
-    );
+          <Box p={6} borderRadius="lg" textAlign="center" py={8}>
+            <Spinner />
+            <Text mt={2} color="gray.600">
+              Cargando perfil…
+            </Text>
+            <LoadBackgroundElement size="users_profile"></LoadBackgroundElement>
+          </Box>
+        );
   }
 
   if (!user) {
@@ -127,26 +113,6 @@ export default function UserDetailPage() {
   return (
     <Box p={6}>
       <Stack gap={6}>
-        {/* Breadcrumb */}
-        <Breadcrumb.Root fontSize="sm" color="gray.600">
-          <Breadcrumb.List>
-            <Breadcrumb.Item>
-              <Breadcrumb.Link href="/admin">
-                <FiHome style={{ display: "inline", marginRight: "4px" }} />
-                Administración
-              </Breadcrumb.Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              <Breadcrumb.Link href="/admin/users">
-                <FiUsers style={{ display: "inline", marginRight: "4px" }} />
-                Usuarios
-              </Breadcrumb.Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              <Breadcrumb.CurrentLink>{user.username}</Breadcrumb.CurrentLink>
-            </Breadcrumb.Item>
-          </Breadcrumb.List>
-        </Breadcrumb.Root>
 
         {/* Header con nombre y estado */}
         <Box>

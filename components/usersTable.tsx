@@ -10,8 +10,9 @@ import {
   Button,
   Stack,
 } from "@chakra-ui/react";
-import { FiEdit2, FiLock, FiUnlock, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiLock, FiUnlock, FiTrash2, FiEye } from "react-icons/fi";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toaster } from "@/components/ui/toaster";
 import {
   DialogActionTrigger,
@@ -122,12 +123,17 @@ export function UsersTable({ users, loading }: UsersTableProps) {
 }
 
 function RowActions({ user }: { user: UserDetails }) {
+  const router = useRouter();
   const [editRoleOpen, setEditRoleOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(user.role);
 
   const isBlocked = user.status === "blocked";
+
+  const handleViewDetails = () => {
+    router.push(`/admin/users/${user.id}`);
+  };
 
   const handleEditRole = () => {
     // TODO: Implementar llamada a API
@@ -167,6 +173,17 @@ function RowActions({ user }: { user: UserDetails }) {
 
   return (
     <Stack direction="row" gap={2} justify="center">
+      {/* Ver detalles */}
+      <IconButton
+        aria-label="Ver detalles"
+        size="sm"
+        variant="ghost"
+        colorScheme="blue"
+        onClick={handleViewDetails}
+      >
+        <FiEye />
+      </IconButton>
+
       {/* Editar rol */}
       <DialogRoot open={editRoleOpen} onOpenChange={(e) => setEditRoleOpen(e.open)}>
         <DialogTrigger asChild>

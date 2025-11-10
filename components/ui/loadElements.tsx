@@ -10,6 +10,10 @@ export default function LoadBackgroundElement({size = "full"}: {size?: string}) 
     height = "xl";
     width = "full";
   }
+  else if (size == "users_profile") {
+    height = "2xl";
+    width = "full";
+  }
   else{
     height = "4xl";
     width = "full";
