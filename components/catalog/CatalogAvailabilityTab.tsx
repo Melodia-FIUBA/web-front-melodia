@@ -1,6 +1,6 @@
 import { Box, Text, Stack, Heading, Spinner, Badge } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { fetchAvailabilityById, AvailabilityDetails } from "@/lib/catalog/availabilityDetails";
+import { getAvailabilityById, AvailabilityDetails } from "@/lib/catalog/availabilityDetails";
 
 interface CatalogAvailabilityTabProps {
   id: string;
@@ -15,7 +15,7 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
     let mounted = true;
     const fetchAvailability = async () => {
       setLoading(true);
-      const fetchedAvailability = await fetchAvailabilityById(id, type);
+      const fetchedAvailability = await getAvailabilityById(id, type);
       if (!mounted) return;
       setAvailability(fetchedAvailability);
       setLoading(false);

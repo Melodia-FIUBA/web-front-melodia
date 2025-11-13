@@ -27,7 +27,7 @@ export async function getUsersList(limit: number, offset: number): Promise<[User
         //return { success: true, toastMessage: "Inicio de sesión exitoso" };
         const cfg = await getRuntimeConfig();
 
-        const users_list_url = new URL(`${cfg.SEARCH_SONGS_PATH}?offset=${offset}&limit=${limit}`, cfg.MELODIA_USERS_BACKOFFICE_API_URL);
+        const users_list_url = new URL(`${cfg.LIST_USERS_PATH}?offset=${offset}&limit=${limit}`, cfg.MELODIA_USERS_BACKOFFICE_API_URL);
 
         const token = getToken();
 

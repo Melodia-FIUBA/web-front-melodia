@@ -68,7 +68,7 @@ export default function UsersPage() {
             </Button>
 
             <Text fontSize="sm" color="gray.600">
-              Página {Math.floor(offset / USERS_LIST_LIMIT) + 1} / {total ?? 1}
+              Página {Math.floor(offset / USERS_LIST_LIMIT) + 1} / {total ?? 0}
             </Text>
 
             <Button

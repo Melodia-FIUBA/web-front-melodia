@@ -91,7 +91,7 @@ export function CatalogResultsTable({
                 <Table.ColumnHeader minW="120px">Tipo</Table.ColumnHeader>
                 <Table.ColumnHeader minW="150px">Artista Principal</Table.ColumnHeader>
                 <Table.ColumnHeader minW="150px">Colección</Table.ColumnHeader>
-                <Table.ColumnHeader minW="120px">Publicado</Table.ColumnHeader>
+                <Table.ColumnHeader minW="120px">Fecha de Publicacion</Table.ColumnHeader>
                 <Table.ColumnHeader minW="140px">Estado</Table.ColumnHeader>
                 <Table.ColumnHeader minW="120px" textAlign="center">Acciones</Table.ColumnHeader>
               </Table.Row>
