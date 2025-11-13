@@ -1,4 +1,4 @@
-import { CatalogDetails, CatalogFilters, fetchCatalogResults, validateDateRange } from "@/lib/catalog/searchCatalog";
+import { CatalogDetails, CatalogFilters, getCatalogResults, validateDateRange } from "@/lib/catalog/searchCatalog";
 
 /**
  * UI-oriented helper that performs the search and optionally updates UI state via callbacks.
@@ -29,19 +29,11 @@ export async function handleSearchFilters(
 
     setLoading?.(true);
     try {
-        const res = await fetchCatalogResults(filters);
+        const [items, total] = await getCatalogResults(filters);
 
-        if (!res) {
-            // validation returned null
-            setItems?.([]);
-            setTotal?.(0);
-            setError?.('Rango de fechas inválido');
-            return null;
-        }
-
-        setItems?.(res.items ?? []);
-        setTotal?.(typeof res.total === 'number' ? res.total : res.items.length);
-        return res.items;
+        setItems?.(items ?? []);
+        setTotal?.(total ?? 0);
+        return items;
     } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         setError?.(message);

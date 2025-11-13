@@ -9,7 +9,8 @@ import { CatalogSummaryTab } from "@/components/catalog/CatalogSummaryTab";
 import { CatalogAvailabilityTab } from "@/components/catalog/CatalogAvailabilityTab";
 import { CatalogAppearancesTab } from "@/components/catalog/CatalogAppearancesTab";
 import { CatalogAuditTab } from "@/components/catalog/CatalogAuditTab";
-import { fetchItemById } from "@/lib/catalog/summaryDetails";
+import { getItemById } from "@/lib/catalog/summaryDetails";
+import LoadBackgroundElement from "@/components/ui/loadElements";
 
 
 export default function CatalogDetailPage() {
@@ -35,7 +36,7 @@ export default function CatalogDetailPage() {
 
     const fetchItem = async () => {
       setLoading(true);
-      const fetchedItem = await fetchItemById(id, type);
+      const fetchedItem = await getItemById(id, type);
       setItem(fetchedItem);
       setLoading(false);
     };
@@ -54,6 +55,7 @@ export default function CatalogDetailPage() {
         <Text mt={2} color="gray.600">
           Cargando detalles del catálogo…
         </Text>
+        <LoadBackgroundElement size="catalog_detail_menu"></LoadBackgroundElement>
       </Box>
     );
   }

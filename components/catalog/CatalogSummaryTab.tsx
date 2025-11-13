@@ -2,7 +2,8 @@ import { Box, Text, Stack, Heading, Spinner } from "@chakra-ui/react";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { fetchItemById } from "@/lib/catalog/summaryDetails";
+import { getItemById } from "@/lib/catalog/summaryDetails";
+import LoadBackgroundElement from "../ui/loadElements";
 
 interface CatalogSummaryTabProps {
     id: string;
@@ -35,7 +36,7 @@ export function CatalogSummaryTab({ id, type, initialItem }: CatalogSummaryTabPr
     let mounted = true;
     const fetchItem = async () => {
       setLoading(true);
-      const fetchedItem = await fetchItemById(id, type);
+      const fetchedItem = await getItemById(id, type);
       if (!mounted) return;
       setItem(fetchedItem);
       setLoading(false);
@@ -57,6 +58,7 @@ export function CatalogSummaryTab({ id, type, initialItem }: CatalogSummaryTabPr
         <Text mt={2} color="gray.600">
           Cargando detalles…
         </Text>
+        <LoadBackgroundElement size="catalog_summary"></LoadBackgroundElement>
       </Box>
     );
   }

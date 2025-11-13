@@ -4,16 +4,15 @@ import { Box, Text, Spinner, Table, Menu, IconButton, Portal } from "@chakra-ui/
 import { useRouter } from "next/navigation";
 import { FiMoreVertical } from "react-icons/fi";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
+import LoadBackgroundElement from "../ui/loadElements";
 
 // Componente de tabla de resultados - fácil de extraer a otro archivo
 export function CatalogResultsTable({
   items,
-  total,
   loading,
   searchQuery,
 }: {
   items: CatalogDetails[];
-  total: number | null;
   loading: boolean;
   searchQuery: string;
 }) {
@@ -66,6 +65,7 @@ export function CatalogResultsTable({
         <Text mt={2} color="gray.600">
           Cargando resultados…
         </Text>
+        <LoadBackgroundElement size="catalog_search"></LoadBackgroundElement>
       </Box>
     );
   }
@@ -74,7 +74,7 @@ export function CatalogResultsTable({
     <Box borderWidth={1} borderRadius="lg" overflow="hidden">
       <Box p={4} borderBottomWidth={1}>
         <Text fontWeight={600} color="gray.700">
-          Resultados ({total ?? 0})
+          Resultados ({items.length})
         </Text>
       </Box>
 
@@ -140,7 +140,7 @@ export function CatalogResultsTable({
                       bg={
                         item.effectiveStatus === "published"
                           ? "green.100"
-                          : item.effectiveStatus === "scheduled"
+                          : item.effectiveStatus === "unpublished"
                           ? "yellow.100"
                           : item.effectiveStatus === "blocked-admin"
                           ? "red.100"
@@ -151,7 +151,7 @@ export function CatalogResultsTable({
                       color={
                         item.effectiveStatus === "published"
                           ? "green.800"
-                          : item.effectiveStatus === "scheduled"
+                          : item.effectiveStatus === "unpublished"
                           ? "yellow.800"
                           : item.effectiveStatus === "blocked-admin"
                           ? "red.800"
@@ -160,7 +160,7 @@ export function CatalogResultsTable({
                           : "gray.800"
                       }
                     >
-                      {item.effectiveStatus === "scheduled"
+                      {item.effectiveStatus === "unpublished"
                         ? "Programado"
                         : item.effectiveStatus === "published"
                         ? "Publicado"

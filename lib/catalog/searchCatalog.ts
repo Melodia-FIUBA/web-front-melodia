@@ -1,10 +1,10 @@
 /* eslint-disable prefer-const */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getRuntimeConfig } from '../config/envs';
 import { getToken } from '../log/cookies';
 import { getUserById } from '../users/getUsers';
 import { SONGS_AND_OTHER_ITEMS_MOCK } from './mock';
+import { getCollectionDetailsById } from './summaryDetails';
 export { SONGS_AND_OTHER_ITEMS_MOCK };
 
 export function validateDateRange(publishedFrom?: string, publishedTo?: string) {
@@ -81,14 +81,15 @@ export function buildSearchPayload(filters: CatalogFilters): string {
         payload += `&limit=${filters.limit}`;
         payload += `&offset=${filters.offset}`;
     }
+    console.log("PAYLOAD BUILD SEARCH", payload);
     return (payload === "") ? "" : "?" + payload;
 }
 
 
 
-export async function fetchCatalogResults(
+export async function getCatalogResults(
     filters: Partial<CatalogFilters>,
-): Promise<any> {
+): Promise<[CatalogDetails[], number]> {
 
     try {
         //return { success: true, toastMessage: "Inicio de sesión exitoso" };
@@ -100,7 +101,7 @@ export async function fetchCatalogResults(
             selectedStatus: filters.selectedStatus ?? '',
             publishedFrom: filters.publishedFrom ?? '',
             publishedTo: filters.publishedTo ?? '',
-            limit: '10',
+            limit: filters.limit ?? '10',
             offset: filters.offset ?? '0',
         });
 
@@ -125,10 +126,89 @@ export async function fetchCatalogResults(
 
         if (res.ok && body) {
             let items: CatalogDetails[] = []
-            for (let item of body.items) {
+            for (let item of body) {
                 if (item?.type === 'song') {
 
-                    let collBody = await fetchCollectionDetailsById(item.collection_id);
+                    let collBody = await getCollectionDetailsById(item.collection_id);
+
+                    let userBody = await getUserById(item.owner_id);
+
+                    console.log("COLLECTION BODY IN SEARCH", collBody);
+                    console.log("USER BODY IN SEARCH", userBody);
+
+                    items.push({
+                        id: item.id ?? "",
+                        type: item.type ?? "song",
+                        title: item.title,
+                        artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                        collection: { id: item.collection_id, title: collBody?.title ?? "" },
+                        trackNumber: null,
+                        duration: null,
+                        video: item.video ?? false,
+                        typeLabel: undefined,
+                        year: null,
+                        owner: null,
+                        songs: undefined,
+                        publishedAt: item.created_at ?? null,
+                        effectiveStatus: item.is_published ? 'published' : 'unpublished', //TODO: no considera si esta bloqueado o por region
+                    });
+                } else if (item?.type === 'collection') {
+
+
+                    let userBody = await getUserById(item.created_by_user_id);
+
+
+                    items.push({
+                        id: item.id ?? "",
+                        type: item.type ?? "collection",
+                        title: item.title,
+                        artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                        collection: null,
+                        trackNumber: null,
+                        duration: null,
+                        video: false,
+                        typeLabel: "collection",
+                        year: null,
+                        owner: null,
+                        songs: [],
+                        publishedAt: item.created_at ?? null,
+                        effectiveStatus: item.status === "published" ? "published" : "unpublished", //TODO: faltan estados
+                    });
+                } else if (item?.type === 'playlist') {
+
+                    let userBody = await getUserById(item.created_by_user_id);
+
+                    items.push({
+                        id: item.id ?? "",
+                        type: item.type ?? "collection",
+                        title: item.title,
+                        artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                        collection: null,
+                        trackNumber: null,
+                        duration: null,
+                        video: false,
+                        typeLabel: "collection",
+                        year: null,
+                        owner: null,
+                        songs: [],
+                        publishedAt: item.created_at ?? null,
+                        effectiveStatus: item.status === "published" ? "published" : "unpublished", //TODO: faltan estados
+                    });
+                }
+            }
+            console.log("ITEMS SEARCH CATALOG", items);
+            const total = items.length; 
+            return [items, total];
+        } else {
+            return [[], 0];
+        }
+    } catch {
+        return [[], 0];
+    }
+}
+
+/*
+let collBody = await fetchCollectionDetailsById(item.collection_id);
                     let trackNumber = 1;
 
                     let userBody = await getUserById(item.owner_id);
@@ -149,103 +229,4 @@ export async function fetchCatalogResults(
                         publishedAt: item.created_at ?? null,
                         effectiveStatus: item.is_published ? 'published' : 'unpublished', //TODO: no considera si esta bloqueado o por region
                     });
-                } else if (item?.type === 'collection') {
-
-
-                    let userBody = await getUserById(item.owner_id);
-
-
-                    items.push({
-                        id: item.id ?? "",
-                        type: item.type ?? "collection",
-                        title: item.title ?? "",
-                        artists: userBody?.username ? [userBody.username] : ["Anónimo"],
-                        collection: null,
-                        trackNumber: null,
-                        duration: item.duration ?? null,
-                        video: false,
-                        typeLabel: "collection",
-                        year: item.release_date.substring(0, 4) ?? null,
-                        owner: item.owner ?? null,
-                        songs: item.songs ?? [],
-                        publishedAt: item.published_at ?? null,
-                        effectiveStatus: item.effective_status ?? "",
-                    });
-                } else if (item?.type === 'playlist') {
-                    items.push({
-                        id: item.id ?? "",
-                        type: item.type ?? "",
-                        title: item.title ?? "",
-                        artists: item.artists ?? [],
-                        collection: item.collection ?? null,
-                        trackNumber: item.track_number ?? null,
-                        duration: item.duration ?? null,
-                        video: item.video ?? false,
-                        typeLabel: item.type_label ?? "",
-                        year: item.year ?? null,
-                        owner: item.owner ?? null,
-                        songs: item.songs ?? [],
-                        publishedAt: item.published_at ?? null,
-                        effectiveStatus: item.effective_status ?? "",
-                    });
-                }
-            }
-            return items;
-        } else {
-            return []
-        }
-    } catch {
-        return [];
-    }
-
-
-    return SONGS_AND_OTHER_ITEMS_MOCK;
-}
-
-
-export async function fetchCollectionDetailsById(collectionId: string): Promise<CatalogDetails | null> {
-    try {
-        const cfg = await getRuntimeConfig();
-
-        const collection_url = new URL(cfg.GET_ID_COLLECTIONS_PATH.replace(":id", collectionId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
-
-        const token = getToken();
-
-        const headers: Record<string, string> = { "Content-Type": "application/json" };
-
-        if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-        }
-
-        const res = await fetch(collection_url, {
-            method: "GET",
-            headers: headers,
-        });
-
-        const body = await res?.json();
-
-        if (res.ok && body) {
-            const item: CatalogDetails = {
-                id: body.id ?? "",
-                type: body.type ?? "",
-                title: body.title ?? "",
-                artists: body.artists ?? [],
-                collection: body.collection ?? null,
-                trackNumber: body.track_number ?? null,
-                duration: body.duration ?? null,
-                video: body.video ?? false,
-                typeLabel: body.type_label ?? "",
-                year: body.year ?? null,
-                owner: body.owner ?? null,
-                songs: body.songs ?? [],
-                publishedAt: body.published_at ?? null,
-                effectiveStatus: body.effective_status ?? "",
-            }
-            return item;
-        } else {
-            return null;
-        }
-    } catch {
-        return null;
-    }
-}
+*/

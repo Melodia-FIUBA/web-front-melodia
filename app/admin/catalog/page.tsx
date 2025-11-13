@@ -1,19 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Box, VStack, Heading } from "@chakra-ui/react";
+import { Box, VStack, Heading, HStack, Button, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { SearchBar } from "@/components/searchBar";
 import {
   validateDateRange,
   CatalogDetails,
 } from "@/lib/catalog/searchCatalog";
-import { CatalogResultsTable } from "@/components/catalog/catalogResultsTable";
+import { CatalogResultsTable } from "@/components/catalog/CatalogResultsTable";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 import { handleSearchFilters } from "./utils";
 
 export default function CatalogPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  // appliedQuery stores the last query that was "applied" by clicking Buscar/Aplicar
+  // highlighting should follow this value so it doesn't update on every keystroke
+  const [appliedQuery, setAppliedQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedType, setSelectedType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -26,6 +29,7 @@ export default function CatalogPage() {
     setPublishedFrom("");
     setPublishedTo("");
     setSearchQuery("");
+    setAppliedQuery("");
   };
 
   const activeFiltersCount = [
@@ -43,6 +47,10 @@ export default function CatalogPage() {
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [, setError] = useState<string | null>(null);
+
+  // Pagination state
+  const [offset, setOffset] = useState(0);
+  const CATALOG_LIST_LIMIT = 10;
 
   
   useEffect(() => {
@@ -69,6 +77,7 @@ export default function CatalogPage() {
         // schedule updates to avoid synchronous setState calls inside effect
         setTimeout(() => {
           if (searchParam) setSearchQuery(searchParam);
+          if (searchParam) setAppliedQuery(searchParam);
           if (type) setSelectedType(type);
           if (status) setSelectedStatus(status);
           if (from) setPublishedFrom(from);
@@ -140,19 +149,88 @@ export default function CatalogPage() {
           publishedTo={publishedTo}
           setPublishedTo={setPublishedTo}
           isDateRangeValid={validateDateRange(publishedFrom, publishedTo)}
-          onApply={() => handleSearchFilters(
-            { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo },
-            { setItems, setTotal, setLoading, setError }
-          )}
+          onApply={() => {
+            // mark the current search query as applied so highlighting updates only on apply
+            setAppliedQuery(searchQuery);
+            setOffset(0); // Reset offset when applying new filters
+            handleSearchFilters(
+              { 
+                searchQuery, 
+                selectedType, 
+                selectedStatus, 
+                publishedFrom, 
+                publishedTo,
+                limit: String(CATALOG_LIST_LIMIT),
+                offset: '0'
+              },
+              { setItems, setTotal, setLoading, setError }
+            );
+          }}
         />
 
         {/* Results Section */}
         <CatalogResultsTable
           items={items}
-          total={total}
           loading={loading}
-          searchQuery={searchQuery}
+          // highlight using the last-applied query instead of live typing
+          searchQuery={appliedQuery}
         />
+
+        {/* Paginado */}
+        <Box>
+          <HStack justify="center" gap={4} mt={2}>
+            <Button
+              onClick={() => {
+                const newOffset = Math.max(0, offset - CATALOG_LIST_LIMIT);
+                setOffset(newOffset);
+                handleSearchFilters(
+                  { 
+                    searchQuery, 
+                    selectedType, 
+                    selectedStatus, 
+                    publishedFrom, 
+                    publishedTo,
+                    limit: String(CATALOG_LIST_LIMIT),
+                    offset: String(newOffset)
+                  },
+                  { setItems, setTotal, setLoading, setError }
+                );
+              }}
+              disabled={offset === 0 || loading}
+              variant="outline"
+            >
+              Anterior
+            </Button>
+
+              {/* / {total ?? 1} */}
+            <Text fontSize="sm" color="gray.600">
+              Página {Math.floor(offset / CATALOG_LIST_LIMIT) + 1} 
+            </Text>
+
+            <Button
+              onClick={() => {
+                const newOffset = offset + CATALOG_LIST_LIMIT;
+                setOffset(newOffset);
+                handleSearchFilters(
+                  { 
+                    searchQuery, 
+                    selectedType, 
+                    selectedStatus, 
+                    publishedFrom, 
+                    publishedTo,
+                    limit: String(CATALOG_LIST_LIMIT),
+                    offset: String(newOffset)
+                  },
+                  { setItems, setTotal, setLoading, setError }
+                );
+              }}
+              disabled={loading || items.length < CATALOG_LIST_LIMIT}
+              variant="outline"
+            >
+              Siguiente
+            </Button>
+          </HStack>
+        </Box>
       </VStack>
     </Box>
   );

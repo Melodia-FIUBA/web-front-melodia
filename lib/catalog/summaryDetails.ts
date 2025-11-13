@@ -1,20 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getRuntimeConfig } from "../config/envs";
 import { getToken } from "../log/cookies";
-import { CatalogDetails, SONGS_AND_OTHER_ITEMS_MOCK } from "./searchCatalog";
+import { getUserById } from "../users/getUsers";
+import { CatalogDetails } from "./searchCatalog";
 
 
-export async function fetchItemById(id: string, type: string): Promise<CatalogDetails | null> {
+export async function getItemById(id: string, type: string): Promise<CatalogDetails | null> {
 
-    // quick mock lookup
-    const mock = SONGS_AND_OTHER_ITEMS_MOCK.items.find((r: { id?: string; type?: string }) => r.id === id && r.type === type);
-    return mock as CatalogDetails;
-    
+    if (type === "collection") {
+        return await getCollectionDetailsById(id);
+    } else if (type === "playlist") {
+        return await getPlaylistDetailsById(id);
+    } else if (type === "song") {
+        return await getSongDetailsById(id);
+    } else {
+        return null;
+    }
+}
+
+export async function getCollectionDetailsById(collectionId: string): Promise<CatalogDetails | null> {
     try {
         const cfg = await getRuntimeConfig();
 
-        // Construct the URL for the catalog item detail endpoint
-        // Assuming the backend has an endpoint like: /catalog/{type}/{id}
-        const itemUrl = new URL(`/catalog/${type}/${id}`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        const collection_url = new URL(cfg.GET_ID_COLLECTIONS_PATH.replace(":id", collectionId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 
@@ -24,7 +32,7 @@ export async function fetchItemById(id: string, type: string): Promise<CatalogDe
             headers["Authorization"] = `Bearer ${token}`;
         }
 
-        const res = await fetch(itemUrl, {
+        const res = await fetch(collection_url, {
             method: "GET",
             headers: headers,
         });
@@ -32,30 +40,143 @@ export async function fetchItemById(id: string, type: string): Promise<CatalogDe
         const body = await res?.json();
 
         if (res.ok && body) {
+
+            const userBody = await getUserById(body.created_by_user_id);
+
             const item: CatalogDetails = {
                 id: body.id ?? "",
-                type: body.type ?? type,
-                title: body.title ?? "",
-                artists: body.artists ?? [],
-                collection: body.collection ?? null,
-                trackNumber: body.track_number ?? body.trackNumber ?? null,
-                duration: body.duration ?? null,
-                video: body.video ?? false,
-                typeLabel: body.type_label ?? body.typeLabel,
-                year: body.year ?? null,
-                owner: body.owner ?? null,
-                songs: body.songs ?? undefined,
-                publishedAt: body.published_at ?? body.publishedAt ?? null,
-                effectiveStatus: body.effective_status ?? body.effectiveStatus ?? "published",
-            };
+                type: "collection",
+                title: body.title,
+                artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                collection: null,
+                trackNumber: null,
+                duration: null,
+                video: false,
+                typeLabel: "collection",
+                year: body.release_date ? body.release_date.substring(0, 4) : null,
+                owner: null,
+                songs: body.songs.map((song: any, index: number) => ({
+                    id: song.id ?? "",
+                    title: song.title ?? "",
+                    position: String(index + 1),
+                    duration: song.duration ?? null,
+                })),
+                publishedAt: body.release_date ?? null,
+                effectiveStatus: body.status === "published" ? "published" : "unpublished", //TODO: faltan estados
+                coverUrl: body.cover_url ?? null,
+            }
             return item;
         } else {
-            console.error("Error fetching item:", body);
             return null;
         }
-    } catch (error) {
-        console.error("Error fetching item by ID:", error);
+    } catch {
         return null;
     }
 }
 
+export async function getPlaylistDetailsById(playlistId: string): Promise<CatalogDetails | null> {
+    try {
+        const cfg = await getRuntimeConfig();
+
+        const collection_url = new URL(cfg.GET_ID_PLAYLISTS_PATH.replace(":id", playlistId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+
+        const token = getToken();
+
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(collection_url, {
+            method: "GET",
+            headers: headers,
+        });
+
+        const body = await res?.json();
+
+        if (res.ok && body) {
+
+            const userBody = await getUserById(body.created_by_user_id);
+
+            const item: CatalogDetails = {
+                id: body.id ?? "",
+                type: "playlist",
+                title: body.title,
+                artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                collection: null,
+                trackNumber: null,
+                duration: null,
+                video: false,
+                typeLabel: "collection",
+                year: body.created_at ? body.created_at.substring(0, 4) : null,
+                owner: null,
+                songs: body.songs.map((song: any) => ({
+                    id: song.id ?? "",
+                    title: song.title ?? "",
+                    position: song.position ?? "",
+                    duration: song.duration ?? null,
+                })),
+                publishedAt: body.created_at ?? null,
+                effectiveStatus: body.is_public === "published" ? "published" : "unpublished", //TODO: faltan estados
+                coverUrl: body.cover_url ?? null,
+            }
+            return item;
+        } else {
+            return null;
+        }
+    } catch {
+        return null;
+    }
+}
+
+export async function getSongDetailsById(songId: string): Promise<CatalogDetails | null> {
+    try {
+        const cfg = await getRuntimeConfig();
+
+        const collection_url = new URL(cfg.GET_ID_SONGS_PATH.replace(":id", songId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+
+        const token = getToken();
+
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(collection_url, {
+            method: "GET",
+            headers: headers,
+        });
+
+        const body = (await res?.json()).song ?? null;
+
+        if (res.ok && body) {
+
+            const userBody = await getUserById(body.owner_id);
+            const collBody = await getCollectionDetailsById(body.collection_id);
+
+            const item: CatalogDetails = {
+                id: body.id ?? "",
+                type: "song",
+                title: body.title,
+                artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                collection: { id: body.collection_id, title: collBody?.title ?? "" },
+                trackNumber: 1, //TODO URGENTE: DE DONDE SACO ESTO?
+                duration: body.duration,
+                video: false,
+                typeLabel: undefined,
+                year: body.created_at ? body.created_at.substring(0, 4) : null,
+                owner: null,
+                songs: undefined,
+                publishedAt: body.created_at ?? null,
+                effectiveStatus: body.is_published ? 'published' : 'unpublished', //TODO: no considera si esta bloqueado o por region
+            }
+            return item;
+        } else {
+            return null;
+        }
+    } catch {
+        return null;
+    }
+}
