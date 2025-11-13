@@ -23,12 +23,14 @@ export default function CatalogPage() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [publishedFrom, setPublishedFrom] = useState("");
   const [publishedTo, setPublishedTo] = useState("");
+  const [orderBy, setOrderBy] = useState("");
 
   const handleClearFilters = () => {
     setSelectedType("");
     setSelectedStatus("");
     setPublishedFrom("");
     setPublishedTo("");
+    setOrderBy("");
     setSearchQuery("");
     setAppliedQuery("");
   };
@@ -38,6 +40,7 @@ export default function CatalogPage() {
     selectedStatus,
     publishedFrom,
     publishedTo,
+    orderBy,
   ].filter((filter) => filter !== "").length;
 
   const router = useRouter();
@@ -73,8 +76,9 @@ export default function CatalogPage() {
       const status = params.get("status") ?? "";
       const from = params.get("publishedFrom") ?? "";
       const to = params.get("publishedTo") ?? "";
+      const order = params.get("orderBy") ?? "";
 
-      const hasAny = searchParam || type || status || from || to;
+      const hasAny = searchParam || type || status || from || to || order;
       if (hasAny) {
         // schedule updates to avoid synchronous setState calls inside effect
         setTimeout(() => {
@@ -84,6 +88,7 @@ export default function CatalogPage() {
           if (status) setSelectedStatus(status);
           if (from) setPublishedFrom(from);
           if (to) setPublishedTo(to);
+          if (order) setOrderBy(order);
           // mark initialization complete after restoring state from URL
           setInitFromUrl(true);
         }, 0);
@@ -109,6 +114,7 @@ export default function CatalogPage() {
     if (selectedStatus) params.set("status", selectedStatus);
     if (publishedFrom) params.set("publishedFrom", publishedFrom);
     if (publishedTo) params.set("publishedTo", publishedTo);
+    if (orderBy) params.set("orderBy", orderBy);
 
     const queryString = params.toString();
     const newUrl = queryString
@@ -125,6 +131,7 @@ export default function CatalogPage() {
     selectedStatus,
     publishedFrom,
     publishedTo,
+    orderBy,
     router,
     initFromUrl,
   ]);
@@ -150,6 +157,8 @@ export default function CatalogPage() {
           setPublishedFrom={setPublishedFrom}
           publishedTo={publishedTo}
           setPublishedTo={setPublishedTo}
+          orderBy={orderBy}
+          setOrderBy={setOrderBy}
           isDateRangeValid={validateDateRange(publishedFrom, publishedTo)}
           onApply={() => {
             // mark the current search query as applied so highlighting updates only on apply
@@ -162,6 +171,7 @@ export default function CatalogPage() {
                 selectedStatus, 
                 publishedFrom, 
                 publishedTo,
+                orderBy,
                 limit: String(CATALOG_LIST_LIMIT),
                 offset: '0'
               },
@@ -186,6 +196,7 @@ export default function CatalogPage() {
                 selectedStatus, 
                 publishedFrom, 
                 publishedTo,
+                orderBy,
                 limit: String(CATALOG_LIST_LIMIT),
                 offset: String(offset)
               },
@@ -208,6 +219,7 @@ export default function CatalogPage() {
                     selectedStatus, 
                     publishedFrom, 
                     publishedTo,
+                    orderBy,
                     limit: String(CATALOG_LIST_LIMIT),
                     offset: String(newOffset)
                   },
@@ -236,6 +248,7 @@ export default function CatalogPage() {
                     selectedStatus, 
                     publishedFrom, 
                     publishedTo,
+                    orderBy,
                     limit: String(CATALOG_LIST_LIMIT),
                     offset: String(newOffset)
                   },

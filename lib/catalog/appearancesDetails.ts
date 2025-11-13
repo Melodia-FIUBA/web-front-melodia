@@ -91,7 +91,7 @@ export async function getSongAppearances(songId: string): Promise<AppearancesDat
                     id: pl.id ?? "",
                     title: pl.title ?? "",
                     owner: userBody?.username ?? null,
-                    includedCount: pl.position ?? 0,
+                    includedCount: pl.songs_from_collection ?? 0,
                     totalSongs: pl.total_songs ?? 5, //TODO: falta esto en el back
                 } as PlaylistAppearance;
             });
@@ -143,8 +143,8 @@ export async function getCollectionAppearances(collectionId: string): Promise<Ap
                     id: pl.id ?? "",
                     title: pl.title ?? "",
                     owner: userBody?.username ?? null,
-                    includedCount: pl.position ?? 0,
-                    totalSongs: pl.total_songs ?? 5, //TODO: falta esto en el back
+                    includedCount: pl.songs_from_collection ?? 0,
+                    totalSongs: pl.total_songs ?? 0,
                 } as PlaylistAppearance;
             });
 

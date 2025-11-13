@@ -19,6 +19,7 @@ export type CatalogFilters = {
     selectedStatus: string;
     publishedFrom: string;
     publishedTo: string;
+    orderBy: string;
     limit: string
     offset: string
 };
@@ -70,13 +71,14 @@ export type CatalogDetails = {
 
 export function buildSearchPayload(filters: CatalogFilters): string {
     ///search?q=b&type=song,collection&status=published,unpublished&publication_date_from=2024-01-01&publication_date_to=2024-12-31&sort_by=date&limit=10&offset=0
-    const { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo } = filters;
+    const { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo, orderBy } = filters;
     let payload: string = "";
     if (searchQuery) payload += `q=${searchQuery}`;
     if (selectedType) payload += `&type=${selectedType}`;
     if (selectedStatus) payload += `&status=${selectedStatus}`;
     if (publishedFrom) payload += `&publication_date_from=${publishedFrom}`;
     if (publishedTo) payload += `&publication_date_to=${publishedTo}`;
+    if (orderBy === "date") payload += `&sort_by=date`;
     if (payload !== "") {
         payload += `&limit=${filters.limit}`;
         payload += `&offset=${filters.offset}`;
@@ -101,6 +103,7 @@ export async function getCatalogResults(
             selectedStatus: filters.selectedStatus ?? '',
             publishedFrom: filters.publishedFrom ?? '',
             publishedTo: filters.publishedTo ?? '',
+            orderBy: filters.orderBy ?? '',
             limit: filters.limit ?? '10',
             offset: filters.offset ?? '0',
         });
