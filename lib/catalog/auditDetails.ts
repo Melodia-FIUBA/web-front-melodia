@@ -18,5 +18,5 @@ export async function auditItemById(id: string, type: string): Promise<AuditEven
   await new Promise(resolve => setTimeout(resolve, 300));
 
   // Retornar datos mock
-  return MOCK_AUDIT_DATA[id] || [];
+  return MOCK_AUDIT_DATA['s1'] || [];
 }

@@ -1,7 +1,7 @@
 import { Box, Text, Stack, Heading, Spinner, Table } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { fetchAppearancesById, AppearancesData } from "@/lib/catalog/appearancesDetails";
+import { getAppearancesById, AppearancesData } from "@/lib/catalog/appearancesDetails";
 
 interface CatalogAppearancesTabProps {
   id: string;
@@ -29,7 +29,7 @@ export function CatalogAppearancesTab({ id, type }: CatalogAppearancesTabProps) 
     let mounted = true;
     const fetchData = async () => {
       setLoading(true);
-      const fetchedData = await fetchAppearancesById(id, type);
+      const fetchedData = await getAppearancesById(id, type);
       if (!mounted) return;
       setData(fetchedData);
       setLoading(false);

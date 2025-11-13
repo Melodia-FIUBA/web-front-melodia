@@ -22,7 +22,7 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
     try {
         const cfg = await getRuntimeConfig();
 
-        const collection_url = new URL(cfg.GET_ID_COLLECTIONS_PATH.replace(":id", collectionId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        const collection_url = new URL(cfg.CRUD_ID_COLLECTIONS_PATH.replace(":id", collectionId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 
@@ -52,7 +52,7 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
                 trackNumber: null,
                 duration: null,
                 video: false,
-                typeLabel: "collection",
+                typeLabel: body.type,
                 year: body.release_date ? body.release_date.substring(0, 4) : null,
                 owner: null,
                 songs: body.songs.map((song: any, index: number) => ({
@@ -78,7 +78,7 @@ export async function getPlaylistDetailsById(playlistId: string): Promise<Catalo
     try {
         const cfg = await getRuntimeConfig();
 
-        const collection_url = new URL(cfg.GET_ID_PLAYLISTS_PATH.replace(":id", playlistId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        const collection_url = new URL(cfg.CRUD_ID_PLAYLISTS_PATH.replace(":id", playlistId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 
@@ -108,7 +108,7 @@ export async function getPlaylistDetailsById(playlistId: string): Promise<Catalo
                 trackNumber: null,
                 duration: null,
                 video: false,
-                typeLabel: "collection",
+                typeLabel: body.type,
                 year: body.created_at ? body.created_at.substring(0, 4) : null,
                 owner: null,
                 songs: body.songs.map((song: any) => ({
@@ -134,7 +134,7 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
     try {
         const cfg = await getRuntimeConfig();
 
-        const collection_url = new URL(cfg.GET_ID_SONGS_PATH.replace(":id", songId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        const collection_url = new URL(cfg.CRUD_ID_SONGS_PATH.replace(":id", songId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 

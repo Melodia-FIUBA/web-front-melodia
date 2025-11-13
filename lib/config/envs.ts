@@ -12,9 +12,9 @@ type RuntimeConfig = {
     CRUD_USERS_ID_PATH: string;
     SESSIONS_PATH: string;
     SEARCH_SONGS_PATH: string;
-    GET_ID_COLLECTIONS_PATH: string;
-    GET_ID_SONGS_PATH: string;
-    GET_ID_PLAYLISTS_PATH: string;
+    CRUD_ID_COLLECTIONS_PATH: string;
+    CRUD_ID_SONGS_PATH: string;
+    CRUD_ID_PLAYLISTS_PATH: string;
 };
 
 // Memo en módulo para no pegarle mil veces al endpoint
@@ -43,9 +43,9 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                     CRUD_USERS_ID_PATH: "",
                     SESSIONS_PATH: "",
                     SEARCH_SONGS_PATH: "",
-                    GET_ID_COLLECTIONS_PATH: "",
-                    GET_ID_SONGS_PATH: "",
-                    GET_ID_PLAYLISTS_PATH: "",
+                    CRUD_ID_COLLECTIONS_PATH: "",
+                    CRUD_ID_SONGS_PATH: "",
+                    CRUD_ID_PLAYLISTS_PATH: "",
                 };
             }
         })();

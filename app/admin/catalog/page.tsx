@@ -48,6 +48,7 @@ export default function CatalogPage() {
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Pagination state
   const [offset, setOffset] = useState(0);
@@ -175,6 +176,22 @@ export default function CatalogPage() {
           loading={loading}
           // highlight using the last-applied query instead of live typing
           searchQuery={appliedQuery}
+          onActionComplete={() => {
+            setReloadKey((k) => k + 1);
+            // Re-fetch current results
+            handleSearchFilters(
+              { 
+                searchQuery, 
+                selectedType, 
+                selectedStatus, 
+                publishedFrom, 
+                publishedTo,
+                limit: String(CATALOG_LIST_LIMIT),
+                offset: String(offset)
+              },
+              { setItems, setTotal, setLoading, setError }
+            );
+          }}
         />
 
         {/* Paginado */}

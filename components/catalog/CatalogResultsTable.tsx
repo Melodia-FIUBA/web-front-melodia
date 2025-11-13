@@ -3,20 +3,33 @@
 import { Box, Text, Spinner, Table, Menu, IconButton, Portal } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { FiMoreVertical } from "react-icons/fi";
+import { useState } from "react";
+import { toaster } from "@/components/ui/toaster";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import LoadBackgroundElement from "../ui/loadElements";
+import { editItemById } from "@/lib/catalog/editItem";
+import { blockItemById, unblockItemById } from "@/lib/catalog/blockItem";
+import { BlockItemDialog } from "./BlockItemDialog";
+import { EditMetadataDialog } from "./EditMetadataDialog";
 
 // Componente de tabla de resultados - fácil de extraer a otro archivo
 export function CatalogResultsTable({
   items,
   loading,
   searchQuery,
+  onActionComplete,
 }: {
   items: CatalogDetails[];
   loading: boolean;
   searchQuery: string;
+  onActionComplete?: () => void;
 }) {
   const router = useRouter();
+  const [editOpen, setEditOpen] = useState<string | null>(null);
+  const [blockOpen, setBlockOpen] = useState<string | null>(null);
+  
+  // Datos del item que se está editando
+  const [currentEditItem, setCurrentEditItem] = useState<CatalogDetails | null>(null);
 
   const mapTypeToRoute = (type: string) => {
     // map backend types to the route segments you requested
@@ -30,6 +43,60 @@ export function CatalogResultsTable({
     const routeType = mapTypeToRoute(item.type);
     router.push(`/admin/catalog/${routeType}/${item.id}`);
   };
+
+  const handleEditMetadata = async (title: string) => {
+    if (!currentEditItem) return;
+    const editDetails = { title, type: currentEditItem.type }; // Mantener parámetros para uso futuro
+    
+    const editedItem = await editItemById(String(currentEditItem.id),editDetails);
+    if (editedItem !== null) {
+      toaster.create({
+        title: "Metadatos actualizados",
+        description: `Los metadatos de "${editedItem.title}" han sido actualizados correctamente`,
+        type: "success",
+        duration: 3000,
+      });
+      setEditOpen(null);
+      setCurrentEditItem(null);
+      onActionComplete?.();
+    } else {
+      toaster.create({
+        title: "Error al actualizar metadatos",
+        description: `No se pudieron actualizar los metadatos de "${currentEditItem.title}". Inténtalo de nuevo más tarde.`,
+        type: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleToggleBlock = async (item: CatalogDetails) => {
+    const isBlocked = item.effectiveStatus === "blocked-admin";
+    const result = isBlocked 
+      ? await unblockItemById(item.id) 
+      : await blockItemById(item.id);
+
+    if (result !== null) {
+      toaster.create({
+        title: isBlocked ? "Elemento desbloqueado" : "Elemento bloqueado",
+        description: `"${item.title}" ha sido ${
+          isBlocked ? "desbloqueado" : "bloqueado"
+        }`,
+        type: "success",
+        duration: 3000,
+      });
+      setBlockOpen(null);
+      onActionComplete?.();
+    } else {
+      toaster.create({
+        title: "Error al actualizar elemento",
+        description: `No se pudo ${isBlocked ? "desbloquear" : "bloquear"} "${item.title}". Inténtalo de nuevo más tarde.`,
+        type: "error",
+        duration: 3000,
+      });
+      setBlockOpen(null);
+    }
+  };
+
   // Helper para resaltar coincidencias de búsqueda
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text;
@@ -188,20 +255,56 @@ export function CatalogResultsTable({
                             <Menu.Item value="detalle" onClick={() => openDetail(item)}>
                               Abrir detalle
                             </Menu.Item>
-                            <Menu.Item value="metadata" onClick={() => console.log("Editar metadatos", item.id)}>
+                            <Menu.Item 
+                              value="metadata" 
+                              onClick={() => {
+                                setCurrentEditItem(item);
+                                setEditOpen(item.id);
+                              }}
+                            >
                               Editar metadatos
                             </Menu.Item>
                             <Menu.Item value="availability" onClick={() => console.log("Editar disponibilidad", item.id)}>
                               Editar disponibilidad
                             </Menu.Item>
                             <Menu.Separator />
-                            <Menu.Item value="toggleBlock" onClick={() => console.log("Toggle bloqueo", item.id)}>
+                            <Menu.Item 
+                              value="toggleBlock" 
+                              onClick={() => setBlockOpen(item.id)}
+                            >
                               {item.effectiveStatus === "blocked-admin" ? "Desbloquear" : "Bloquear"}
                             </Menu.Item>
                           </Menu.Content>
                         </Menu.Positioner>
                       </Portal>
                     </Menu.Root>
+
+                    {/* Dialog para editar metadatos */}
+                    {currentEditItem && (
+                      <EditMetadataDialog
+                        isOpen={editOpen === item.id}
+                        onClose={() => {
+                          setEditOpen(null);
+                          setCurrentEditItem(null);
+                        }}
+                        onConfirm={handleEditMetadata}
+                        itemTitle={currentEditItem.title}
+                        itemArtists={
+                          Array.isArray(currentEditItem.artists) 
+                            ? currentEditItem.artists.join(", ") 
+                            : currentEditItem.artists || ""
+                        }
+                      />
+                    )}
+
+                    {/* Dialog para bloquear/desbloquear */}
+                    <BlockItemDialog
+                      isOpen={blockOpen === item.id}
+                      onClose={() => setBlockOpen(null)}
+                      onConfirm={() => handleToggleBlock(item)}
+                      itemTitle={item.title}
+                      isBlocked={item.effectiveStatus === "blocked-admin"}
+                    />
                   </Table.Cell>
                 </Table.Row>
               ))}

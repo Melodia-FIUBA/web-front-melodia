@@ -44,6 +44,11 @@ export default function CatalogDetailPage() {
     void fetchItem();
   }, [id, type]);
 
+  const handleRefreshItem = async () => {
+    const fetchedItem = await getItemById(id, type);
+    setItem(fetchedItem);
+  };
+
   if (!isAdminLoggedIn()) {
     return null;
   }
@@ -87,7 +92,7 @@ export default function CatalogDetailPage() {
         </Tabs.List>
 
         <Tabs.Content value="summary" p={4}>
-          <CatalogSummaryTab id={id} type={type} initialItem={item} />
+          <CatalogSummaryTab id={id} type={type} initialItem={item} onActionComplete={handleRefreshItem} />
         </Tabs.Content>
 
         <Tabs.Content value="availability" p={4}>

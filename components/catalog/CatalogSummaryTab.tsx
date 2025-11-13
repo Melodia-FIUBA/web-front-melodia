@@ -1,22 +1,29 @@
-import { Box, Text, Stack, Heading, Spinner } from "@chakra-ui/react";
+import { Box, Text, Stack, Heading, Spinner, Button, HStack } from "@chakra-ui/react";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getItemById } from "@/lib/catalog/summaryDetails";
 import LoadBackgroundElement from "../ui/loadElements";
+import { EditMetadataDialog } from "./EditMetadataDialog";
+import { editItemById } from "@/lib/catalog/editItem";
+import { toaster } from "@/components/ui/toaster";
 
 interface CatalogSummaryTabProps {
     id: string;
     type: string;
     /** If the parent already fetched the item, pass it here to avoid a second API call */
     initialItem?: CatalogDetails | null;
+    /** Callback to refresh the item after editing */
+    onActionComplete?: () => void;
 }
 
-export function CatalogSummaryTab({ id, type, initialItem }: CatalogSummaryTabProps) {
+export function CatalogSummaryTab({ id, type, initialItem, onActionComplete }: CatalogSummaryTabProps) {
   const useParentItem = initialItem !== undefined;
   const [item, setItem] = useState<CatalogDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(!useParentItem);
   const router = useRouter();
+  const [editOpen, setEditOpen] = useState(false);
+  const [currentEditItem, setCurrentEditItem] = useState<CatalogDetails | null>(null);
 
   const mapTypeToRoute = (type: string) => {
     if (type === "song") return "song";
@@ -50,6 +57,39 @@ export function CatalogSummaryTab({ id, type, initialItem }: CatalogSummaryTabPr
   }, [id, type, useParentItem]);
 
   const displayedItem = useParentItem ? initialItem : item;
+
+  const handleEditMetadata = async (title: string) => {
+    if (!currentEditItem) return;
+    const editDetails = { title, type: currentEditItem.type };
+    
+    const editedItem = await editItemById(String(currentEditItem.id), editDetails);
+    if (editedItem !== null) {
+      toaster.create({
+        title: "Metadatos actualizados",
+        description: `Los metadatos de "${editedItem.title}" han sido actualizados correctamente`,
+        type: "success",
+        duration: 3000,
+      });
+      setEditOpen(false);
+      setCurrentEditItem(null);
+      
+      // Update local state
+      if (useParentItem) {
+        // If using parent item, trigger parent refresh
+        onActionComplete?.();
+      } else {
+        // If managing own state, update it
+        setItem(editedItem);
+      }
+    } else {
+      toaster.create({
+        title: "Error al actualizar metadatos",
+        description: `No se pudieron actualizar los metadatos de "${currentEditItem.title}". Inténtalo de nuevo más tarde.`,
+        type: "error",
+        duration: 3000,
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -178,7 +218,39 @@ export function CatalogSummaryTab({ id, type, initialItem }: CatalogSummaryTabPr
 
   return (
     <Box background="gray.900" p={4} borderRadius="md" minH="70vh">
+      <HStack justify="space-between" mb={4}>
+        <Heading size="md">Resumen</Heading>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setCurrentEditItem(displayedItem);
+            setEditOpen(true);
+          }}
+        >
+          Editar Metadatos
+        </Button>
+      </HStack>
+
       {displayedItem.type === 'song' ? renderSongDetails() : renderCollectionDetails()}
+
+      {/* Dialog para editar metadatos */}
+      {currentEditItem && (
+        <EditMetadataDialog
+          isOpen={editOpen}
+          onClose={() => {
+            setEditOpen(false);
+            setCurrentEditItem(null);
+          }}
+          onConfirm={handleEditMetadata}
+          itemTitle={currentEditItem.title}
+          itemArtists={
+            Array.isArray(currentEditItem.artists) 
+              ? currentEditItem.artists.join(", ") 
+              : currentEditItem.artists || ""
+          }
+        />
+      )}
     </Box>
   );
 }

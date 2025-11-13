@@ -818,6 +818,26 @@ export interface AuditEvent {
 export const MOCK_AUDIT_DATA: Record<string, AuditEvent[]> = {
 	's1': [ // Bohemian Rhapsody
 		{
+			id: 'e3',
+			user: 'admin@melodia.com',
+			timestamp: '2025-09-05T09:15:00Z',
+			event: 'region-unavailable',
+			region: 'CN',
+		},
+		{
+			id: 'e4',
+			user: 'admin@melodia.com',
+			timestamp: '2025-10-20T16:45:00Z',
+			event: 'region-available',
+			region: 'US',
+		},
+		{
+			id: 'e7',
+			user: 'admin@melodia.com',
+			timestamp: '2025-11-01T08:30:00Z',
+			event: 'blocked',
+		},
+		{
 			id: 'e1',
 			user: 'admin@melodia.com',
 			timestamp: '2025-11-01T10:30:00Z',
@@ -827,7 +847,7 @@ export const MOCK_AUDIT_DATA: Record<string, AuditEvent[]> = {
 		{
 			id: 'e2',
 			user: 'moderator@melodia.com',
-			timestamp: '2025-10-15T14:20:00Z',
+			timestamp: '2025-11-15T14:20:00Z',
 			event: 'unblocked',
 		},
 	],
