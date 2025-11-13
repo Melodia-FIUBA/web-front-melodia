@@ -1,4 +1,4 @@
-import { Box, Text, Stack, Heading, Spinner, Button, HStack } from "@chakra-ui/react";
+import { Box, Text, Stack, Heading, Spinner, Button, HStack, Image } from "@chakra-ui/react";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -7,6 +7,7 @@ import LoadBackgroundElement from "../ui/loadElements";
 import { EditMetadataDialog } from "./EditMetadataDialog";
 import { editItemById } from "@/lib/catalog/editItem";
 import { toaster } from "@/components/ui/toaster";
+import { getCover } from "@/lib/catalog/getCover";
 
 interface CatalogSummaryTabProps {
     id: string;
@@ -24,6 +25,7 @@ export function CatalogSummaryTab({ id, type, initialItem, onActionComplete }: C
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState<CatalogDetails | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   const mapTypeToRoute = (type: string) => {
     if (type === "song") return "song";
@@ -57,6 +59,25 @@ export function CatalogSummaryTab({ id, type, initialItem, onActionComplete }: C
   }, [id, type, useParentItem]);
 
   const displayedItem = useParentItem ? initialItem : item;
+
+  // Fetch cover when displayedItem changes
+  useEffect(() => {
+    if (!displayedItem) return;
+    
+    let mounted = true;
+    const fetchCover = async () => {
+      const cover = await getCover(displayedItem);
+      if (mounted) {
+        setCoverUrl(cover);
+      }
+    };
+
+    void fetchCover();
+
+    return () => {
+      mounted = false;
+    };
+  }, [displayedItem]);
 
   const handleEditMetadata = async (title: string) => {
     if (!currentEditItem) return;
@@ -167,15 +188,30 @@ export function CatalogSummaryTab({ id, type, initialItem, onActionComplete }: C
     const isPlaylist = displayedItem.type === 'playlist';
     
     return (
-      <Stack gap={4}>
-        <Box>
-          <Text fontWeight={600}>Título</Text>
-          <Text>{displayedItem.title}</Text>
+      <Box display="flex" gap={6} flexDirection={{ base: "column", md: "row" }}>
+        {/* Cover Image */}
+        <Box flexShrink={0}>
+          <Image
+            src={coverUrl || "/melodia-cover.png"}
+            alt={`Cover de ${displayedItem.title}`}
+            width="200px"
+            height="200px"
+            objectFit="cover"
+            borderRadius="md"
+            boxShadow="lg"
+          />
         </Box>
-        <Box>
-          <Text fontWeight={600}>Tipo</Text>
-          <Text>{displayedItem.typeLabel ?? (isPlaylist ? "Playlist" : "Colección")}</Text>
-        </Box>
+        
+        {/* Content */}
+        <Stack gap={4} flex={1}>
+          <Box>
+            <Text fontWeight={600}>Título</Text>
+            <Text>{displayedItem.title}</Text>
+          </Box>
+          <Box>
+            <Text fontWeight={600}>Tipo</Text>
+            <Text>{displayedItem.typeLabel ?? (isPlaylist ? "Playlist" : "Colección")}</Text>
+          </Box>
         {displayedItem.year && (
           <Box>
             <Text fontWeight={600}>Año</Text>
@@ -212,7 +248,8 @@ export function CatalogSummaryTab({ id, type, initialItem, onActionComplete }: C
             </Box>
           </Box>
         )}
-      </Stack>
+        </Stack>
+      </Box>
     );
   };
 

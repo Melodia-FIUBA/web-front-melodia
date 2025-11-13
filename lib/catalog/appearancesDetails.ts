@@ -26,7 +26,6 @@ export type AppearancesData = {
 import { getRuntimeConfig } from '../config/envs';
 import { getToken } from '../log/cookies';
 import { getUserById } from '../users/getUsers';
-import { MOCK_APPEARANCES } from './mock';
 
 export async function getAppearancesById(id: string, type: string): Promise<AppearancesData | null> {
     if (type === "song") {

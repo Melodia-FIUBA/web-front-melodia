@@ -209,27 +209,3 @@ export async function getCatalogResults(
         return [[], 0];
     }
 }
-
-/*
-let collBody = await fetchCollectionDetailsById(item.collection_id);
-                    let trackNumber = 1;
-
-                    let userBody = await getUserById(item.owner_id);
-
-                    items.push({
-                        id: item.id ?? "",
-                        type: item.type ?? "song",
-                        title: item.title,
-                        artists: userBody?.username ? [userBody.username] : ["Anónimo"],
-                        collection: { id: item.collection_id, title: collBody?.title ?? "" },
-                        trackNumber: trackNumber, //TODO: no se como encontrarlo
-                        duration: item.duration,
-                        video: item.video ?? false,
-                        typeLabel: undefined,
-                        year: item.created_at.substring(0, 4) ?? null,
-                        owner: null,
-                        songs: undefined,
-                        publishedAt: item.created_at ?? null,
-                        effectiveStatus: item.is_published ? 'published' : 'unpublished', //TODO: no considera si esta bloqueado o por region
-                    });
-*/
