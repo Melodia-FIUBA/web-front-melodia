@@ -7,10 +7,10 @@ import { SearchBar } from "@/components/searchBar";
 import {
   validateDateRange,
   CatalogDetails,
-  handleApplyFilters as handleApplyFiltersLib,
 } from "@/lib/catalog/searchCatalog";
-import { CatalogResultsTable } from "@/components/catalogResultsTable";
+import { CatalogResultsTable } from "@/components/catalog/catalogResultsTable";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
+import { handleSearchFilters } from "./utils";
 
 export default function CatalogPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,18 +44,7 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(false);
   const [, setError] = useState<string | null>(null);
 
-  // Apply filters -> delegate to library helper that encapsulates network + UI callbacks
-  function handleApplyFilters() {
-    void handleApplyFiltersLib(
-      { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo },
-      {
-        setItems,
-        setTotal,
-        setLoading,
-        setError,
-      }
-    );
-  }
+  
   useEffect(() => {
     if (!isAdminLoggedIn()) {
       router.push("/login");
@@ -151,7 +140,10 @@ export default function CatalogPage() {
           publishedTo={publishedTo}
           setPublishedTo={setPublishedTo}
           isDateRangeValid={validateDateRange(publishedFrom, publishedTo)}
-          onApply={handleApplyFilters}
+          onApply={() => handleSearchFilters(
+            { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo },
+            { setItems, setTotal, setLoading, setError }
+          )}
         />
 
         {/* Results Section */}

@@ -21,8 +21,8 @@ export function CatalogResultsTable({
 
   const mapTypeToRoute = (type: string) => {
     // map backend types to the route segments you requested
-    if (type === "song") return "cancion";
-    if (type === "collection") return "coleccion";
+    if (type === "song") return "song";
+    if (type === "collection") return "collection";
     if (type === "playlist") return "playlist";
     return type;
   };
@@ -89,7 +89,7 @@ export function CatalogResultsTable({
               <Table.Row>
                 <Table.ColumnHeader minW="200px">Título</Table.ColumnHeader>
                 <Table.ColumnHeader minW="120px">Tipo</Table.ColumnHeader>
-                <Table.ColumnHeader minW="150px">Artista</Table.ColumnHeader>
+                <Table.ColumnHeader minW="150px">Artista Principal</Table.ColumnHeader>
                 <Table.ColumnHeader minW="150px">Colección</Table.ColumnHeader>
                 <Table.ColumnHeader minW="120px">Publicado</Table.ColumnHeader>
                 <Table.ColumnHeader minW="140px">Estado</Table.ColumnHeader>
@@ -112,8 +112,11 @@ export function CatalogResultsTable({
                       : item.type}
                   </Table.Cell>
                   <Table.Cell color="gray.700">
-                    {item.mainArtist
-                      ? highlightMatch(item.mainArtist, searchQuery)
+                    {item.artists
+                      ? highlightMatch(
+                          Array.isArray(item.artists) ? item.artists.join(", ") : item.artists,
+                          searchQuery
+                        )
                       : "-"}
                   </Table.Cell>
                   <Table.Cell>
