@@ -25,6 +25,8 @@ export async function GET(request: Request) {
             LIST_USERS_PATH: process.env.LIST_USERS_PATH ?? "",
             CRUD_USERS_ID_PATH: process.env.CRUD_USERS_ID_PATH ?? "",
             SESSIONS_PATH: process.env.SESSIONS_PATH ?? "",
+            SEARCH_SONGS_PATH: process.env.SEARCH_SONGS_PATH ?? "",
+            GET_ID_COLLECTIONS_PATH: process.env.GET_ID_COLLECTIONS_PATH ?? "",
         };
     } else {
         payload = {

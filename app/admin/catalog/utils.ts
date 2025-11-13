@@ -14,10 +14,9 @@ export async function handleSearchFilters(
         setTotal?: (n: number) => void;
         setLoading?: (b: boolean) => void;
         setError?: (s: string | null) => void;
-        fetchOptions?: { endpoint?: string; signal?: AbortSignal };
     }
 ): Promise<CatalogDetails[] | null> {
-    const { setItems, setTotal, setLoading, setError, fetchOptions } = callbacks ?? {};
+    const { setItems, setTotal, setLoading, setError} = callbacks ?? {};
 
     // Clear previous error
     setError?.(null);
@@ -30,7 +29,7 @@ export async function handleSearchFilters(
 
     setLoading?.(true);
     try {
-        const res = await fetchCatalogResults(filters, fetchOptions);
+        const res = await fetchCatalogResults(filters);
 
         if (!res) {
             // validation returned null

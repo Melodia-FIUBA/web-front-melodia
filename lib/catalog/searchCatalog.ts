@@ -1,46 +1,11 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { getRuntimeConfig } from '../config/envs';
+import { getToken } from '../log/cookies';
+import { getUserById } from '../users/getUsers';
 import { SONGS_AND_OTHER_ITEMS_MOCK } from './mock';
 export { SONGS_AND_OTHER_ITEMS_MOCK };
-/* 
-export function applyFiltersAndGetPayload(args?: Partial<CatalogFilters>) {
-    // Read filters from args or URL (client-side). Return normalized Partial<CatalogFilters>
-    let searchQuery: string | undefined;
-    let selectedType: string | undefined;
-    let selectedStatus: string | undefined;
-    let publishedFrom: string | undefined;
-    let publishedTo: string | undefined;
-
-    if (args) {
-        ({ searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo } = args as Partial<CatalogFilters>);
-    } else if (typeof window !== "undefined") {
-        const params = new URLSearchParams(window.location.search);
-        searchQuery = params.get("q") ?? undefined;
-        selectedType = params.get("type") ?? undefined;
-        selectedStatus = params.get("status") ?? undefined;
-        publishedFrom = params.get("publishedFrom") ?? undefined;
-        publishedTo = params.get("publishedTo") ?? undefined;
-    }
-
-    if (!validateDateRange(publishedFrom, publishedTo)) return null;
-
-    return {
-        searchQuery: searchQuery ?? "",
-        selectedType: selectedType ?? "",
-        selectedStatus: selectedStatus ?? "",
-        publishedFrom: publishedFrom ?? "",
-        publishedTo: publishedTo ?? "",
-    };
-}
-*/
-
-
-
-
-
-
-
-
 
 export function validateDateRange(publishedFrom?: string, publishedTo?: string) {
     if (!publishedFrom || !publishedTo) return true;
@@ -54,6 +19,8 @@ export type CatalogFilters = {
     selectedStatus: string;
     publishedFrom: string;
     publishedTo: string;
+    limit: string
+    offset: string
 };
 
 
@@ -77,7 +44,7 @@ export type CatalogDetails = {
     typeLabel?: 'Album' | 'EP' | 'Single' | 'Playlist' | string;
     // Year of the collection (if applicable)
     year?: number | null;
-    // Owner or curator (for playlists or collections)
+    // Owner or curator (for playlists)
     owner?: string | null;
     // List of songs for collection/playlist items (each with optional position/duration)
     songs?: Array<{
@@ -90,66 +57,195 @@ export type CatalogDetails = {
     publishedAt?: string | null;
     // Effective status as returned by the backend
     effectiveStatus?:
-        | 'scheduled'
-        | 'published'
-        | 'not-available-region'
-        | 'blocked-admin'
-        | string;
-    // allow extra server-side fields without losing typing
-    [key: string]: unknown;
+    | 'unpublished'
+    | 'published'
+    | 'not-available-region'
+    | 'blocked-admin'
+    | string;
+    coverUrl?: string;
 };
 
 
 
 
-export function buildApiPayload(filters: CatalogFilters) {
+export function buildSearchPayload(filters: CatalogFilters): string {
+    ///search?q=b&type=song,collection&status=published,unpublished&publication_date_from=2024-01-01&publication_date_to=2024-12-31&sort_by=date&limit=10&offset=0
     const { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo } = filters;
-    const payload: Record<string, string> = {};
-    if (searchQuery) payload.q = searchQuery;
-    if (selectedType) payload.type = selectedType;
-    if (selectedStatus) payload.status = selectedStatus;
-    if (publishedFrom) payload.publishedFrom = `${publishedFrom}T00:00:00Z`;
-    if (publishedTo) payload.publishedTo = `${publishedTo}T23:59:59Z`;
-    return payload;
+    let payload: string = "";
+    if (searchQuery) payload += `q=${searchQuery}`;
+    if (selectedType) payload += `&type=${selectedType}`;
+    if (selectedStatus) payload += `&status=${selectedStatus}`;
+    if (publishedFrom) payload += `&publication_date_from=${publishedFrom}`;
+    if (publishedTo) payload += `&publication_date_to=${publishedTo}`;
+    if (payload !== "") {
+        payload += `&limit=${filters.limit}`;
+        payload += `&offset=${filters.offset}`;
+    }
+    return (payload === "") ? "" : "?" + payload;
 }
 
-/**
- * Fetch results from the catalog API using the provided filters.
- * This helper always performs a GET request (search semantics) and encodes the
- * filter payload as query parameters. You can override the endpoint via options.
- *
- * Returns a typed CatalogResponse<TItem> or throws on network/HTTP error.
- */
-export async function fetchCatalogResults<TItem = CatalogDetails>(
+
+
+export async function fetchCatalogResults(
     filters: Partial<CatalogFilters>,
-    options?: {
-        endpoint?: string; // default: /api/catalog/search
-        signal?: AbortSignal;
-    }
 ): Promise<any> {
-    // Validate date range first
-    if (!validateDateRange(filters.publishedFrom, filters.publishedTo)) return null;
 
-    // small reference to the generic to avoid "defined but never used" in strict lint setups
-    type _TUnused = TItem;
-    // create and reference a dummy value so both the alias and a value are considered used
-    const _useTVar = null as unknown as _TUnused;
-    void _useTVar;
+    try {
+        //return { success: true, toastMessage: "Inicio de sesión exitoso" };
+        const cfg = await getRuntimeConfig();
 
-    const endpoint = options?.endpoint ?? '/api/catalog/search';
-    const payload = buildApiPayload({
-        searchQuery: filters.searchQuery ?? '',
-        selectedType: filters.selectedType ?? '',
-        selectedStatus: filters.selectedStatus ?? '',
-        publishedFrom: filters.publishedFrom ?? '',
-        publishedTo: filters.publishedTo ?? '',
-    });
+        const payload = buildSearchPayload({
+            searchQuery: filters.searchQuery ?? '',
+            selectedType: filters.selectedType ?? '',
+            selectedStatus: filters.selectedStatus ?? '',
+            publishedFrom: filters.publishedFrom ?? '',
+            publishedTo: filters.publishedTo ?? '',
+            limit: '10',
+            offset: filters.offset ?? '0',
+        });
 
-    // mark these as used to avoid unused-variable complaints until the TODO is implemented
-    void endpoint;
-    void payload;
+        const search_songs_url = new URL(`${cfg.SEARCH_SONGS_PATH}${payload}`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
-    // TODO: Build URL with query parameters and perform a real fetch when ready
+        const token = getToken();
+
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(search_songs_url, {
+            method: "GET",
+            headers: headers,
+        });
+
+        const body = await res?.json();
+
+        console.log("BODY SEARCH CATALOG", body);
+
+        if (res.ok && body) {
+            let items: CatalogDetails[] = []
+            for (let item of body.items) {
+                if (item?.type === 'song') {
+
+                    let collBody = await fetchCollectionDetailsById(item.collection_id);
+                    let trackNumber = 1;
+
+                    let userBody = await getUserById(item.owner_id);
+
+                    items.push({
+                        id: item.id ?? "",
+                        type: item.type ?? "song",
+                        title: item.title,
+                        artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                        collection: { id: item.collection_id, title: collBody?.title ?? "" },
+                        trackNumber: trackNumber, //TODO: no se como encontrarlo
+                        duration: item.duration,
+                        video: item.video ?? false,
+                        typeLabel: undefined,
+                        year: item.created_at.substring(0, 4) ?? null,
+                        owner: null,
+                        songs: undefined,
+                        publishedAt: item.created_at ?? null,
+                        effectiveStatus: item.is_published ? 'published' : 'unpublished', //TODO: no considera si esta bloqueado o por region
+                    });
+                } else if (item?.type === 'collection') {
+
+
+                    let userBody = await getUserById(item.owner_id);
+
+
+                    items.push({
+                        id: item.id ?? "",
+                        type: item.type ?? "collection",
+                        title: item.title ?? "",
+                        artists: userBody?.username ? [userBody.username] : ["Anónimo"],
+                        collection: null,
+                        trackNumber: null,
+                        duration: item.duration ?? null,
+                        video: false,
+                        typeLabel: "collection",
+                        year: item.release_date.substring(0, 4) ?? null,
+                        owner: item.owner ?? null,
+                        songs: item.songs ?? [],
+                        publishedAt: item.published_at ?? null,
+                        effectiveStatus: item.effective_status ?? "",
+                    });
+                } else if (item?.type === 'playlist') {
+                    items.push({
+                        id: item.id ?? "",
+                        type: item.type ?? "",
+                        title: item.title ?? "",
+                        artists: item.artists ?? [],
+                        collection: item.collection ?? null,
+                        trackNumber: item.track_number ?? null,
+                        duration: item.duration ?? null,
+                        video: item.video ?? false,
+                        typeLabel: item.type_label ?? "",
+                        year: item.year ?? null,
+                        owner: item.owner ?? null,
+                        songs: item.songs ?? [],
+                        publishedAt: item.published_at ?? null,
+                        effectiveStatus: item.effective_status ?? "",
+                    });
+                }
+            }
+            return items;
+        } else {
+            return []
+        }
+    } catch {
+        return [];
+    }
+
 
     return SONGS_AND_OTHER_ITEMS_MOCK;
+}
+
+
+export async function fetchCollectionDetailsById(collectionId: string): Promise<CatalogDetails | null> {
+    try {
+        const cfg = await getRuntimeConfig();
+
+        const collection_url = new URL(cfg.GET_ID_COLLECTIONS_PATH.replace(":id", collectionId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+
+        const token = getToken();
+
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(collection_url, {
+            method: "GET",
+            headers: headers,
+        });
+
+        const body = await res?.json();
+
+        if (res.ok && body) {
+            const item: CatalogDetails = {
+                id: body.id ?? "",
+                type: body.type ?? "",
+                title: body.title ?? "",
+                artists: body.artists ?? [],
+                collection: body.collection ?? null,
+                trackNumber: body.track_number ?? null,
+                duration: body.duration ?? null,
+                video: body.video ?? false,
+                typeLabel: body.type_label ?? "",
+                year: body.year ?? null,
+                owner: body.owner ?? null,
+                songs: body.songs ?? [],
+                publishedAt: body.published_at ?? null,
+                effectiveStatus: body.effective_status ?? "",
+            }
+            return item;
+        } else {
+            return null;
+        }
+    } catch {
+        return null;
+    }
 }

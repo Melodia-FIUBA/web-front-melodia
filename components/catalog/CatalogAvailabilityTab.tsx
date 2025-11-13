@@ -55,7 +55,7 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
     switch (status) {
       case 'published':
         return 'green';
-      case 'scheduled':
+      case 'unpublished':
         return 'blue';
       case 'not-available-region':
         return 'orange';
@@ -71,7 +71,7 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
     switch (status) {
       case 'published':
         return 'Publicado';
-      case 'scheduled':
+      case 'unpublished':
         return 'Programado';
       case 'not-available-region':
         return 'No disponible en región';
@@ -104,7 +104,7 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
           <Badge colorPalette={getStatusColor(availability.effectiveStatus)} fontSize="md" px={3} py={1}>
             {getStatusLabel(availability.effectiveStatus)}
           </Badge>
-          {availability.effectiveStatus === 'scheduled' && availability.scheduledAt && (
+          {availability.effectiveStatus === 'unpublished' && availability.scheduledAt && (
             <Text mt={2} color="gray.400">
               Fecha programada: {formatDate(availability.scheduledAt)}
             </Text>
@@ -132,7 +132,7 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
                     <Text fontWeight={600}>
                       {region.name} ({region.code})
                     </Text>
-                    {region.status === 'scheduled' && region.scheduledAt && (
+                    {region.status === 'unpublished' && region.scheduledAt && (
                       <Text fontSize="sm" color="gray.400" mt={1}>
                         {formatDate(region.scheduledAt)}
                       </Text>

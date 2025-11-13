@@ -193,7 +193,7 @@ export const SONGS_AND_OTHER_ITEMS_MOCK = {
 			duration: 245,
 			video: true,
 			publishedAt: null,
-			effectiveStatus: 'scheduled',
+			effectiveStatus: 'unpublished',
 		},
 		{
 			id: 's17',
@@ -205,7 +205,7 @@ export const SONGS_AND_OTHER_ITEMS_MOCK = {
 			duration: 198,
 			video: true,
 			publishedAt: null,
-			effectiveStatus: 'scheduled',
+			effectiveStatus: 'unpublished',
 		},
 		{
 			id: 's18',
@@ -217,7 +217,7 @@ export const SONGS_AND_OTHER_ITEMS_MOCK = {
 			duration: 312,
 			video: false,
 			publishedAt: null,
-			effectiveStatus: 'scheduled',
+			effectiveStatus: 'unpublished',
 		},
 
 		// Collections (Album/EP/Single/Playlist)
@@ -380,7 +380,7 @@ export const SONGS_AND_OTHER_ITEMS_MOCK = {
 			],
 			video: true,
 			publishedAt: null,
-			effectiveStatus: 'scheduled',
+			effectiveStatus: 'unpublished',
 		},
 
 		// Playlists (curated)
@@ -493,9 +493,9 @@ pageSize: 50,
 };// Mock availability data consolidated here so other modules can reuse it.
 // Keep coherence with `SONGS_AND_OTHER_ITEMS_MOCK` effectiveStatus values.
 export const AVAILABILITY_MOCK: Record<string, {
-	effectiveStatus: 'published' | 'scheduled' | 'not-available-region' | 'blocked-admin';
+	effectiveStatus: 'published' | 'unpublished' | 'not-available-region' | 'blocked-admin';
 	scheduledAt?: string | null;
-	regions: { code: string; name: string; status: 'published' | 'scheduled' | 'not-available-region' | 'blocked-admin'; scheduledAt: string | null }[];
+	regions: { code: string; name: string; status: 'published' | 'unpublished' | 'not-available-region' | 'blocked-admin'; scheduledAt: string | null }[];
 }> = {
 	// Songs
 	's1': {
@@ -535,33 +535,33 @@ export const AVAILABILITY_MOCK: Record<string, {
 		],
 	},
 	's16': {
-		effectiveStatus: 'scheduled',
+		effectiveStatus: 'unpublished',
 		scheduledAt: '2025-12-15T00:00:00Z',
 		regions: [
-			{ code: 'US', name: 'Estados Unidos', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'AR', name: 'Argentina', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'BR', name: 'Brasil', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'MX', name: 'México', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'US', name: 'Estados Unidos', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'AR', name: 'Argentina', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'BR', name: 'Brasil', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'MX', name: 'México', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
 		],
 	},
 	's17': {
-		effectiveStatus: 'scheduled',
+		effectiveStatus: 'unpublished',
 		scheduledAt: '2025-12-15T00:00:00Z',
 		regions: [
-			{ code: 'US', name: 'Estados Unidos', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'AR', name: 'Argentina', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'BR', name: 'Brasil', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'MX', name: 'México', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'US', name: 'Estados Unidos', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'AR', name: 'Argentina', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'BR', name: 'Brasil', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'MX', name: 'México', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
 		],
 	},
 	's18': {
-		effectiveStatus: 'scheduled',
+		effectiveStatus: 'unpublished',
 		scheduledAt: '2025-12-15T00:00:00Z',
 		regions: [
-			{ code: 'US', name: 'Estados Unidos', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'AR', name: 'Argentina', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'BR', name: 'Brasil', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'MX', name: 'México', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'US', name: 'Estados Unidos', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'AR', name: 'Argentina', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'BR', name: 'Brasil', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'MX', name: 'México', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
 		],
 	},
 
@@ -607,14 +607,14 @@ export const AVAILABILITY_MOCK: Record<string, {
 		],
 	},
 	'col11': {
-		effectiveStatus: 'scheduled',
+		effectiveStatus: 'unpublished',
 		scheduledAt: '2025-12-15T00:00:00Z',
 		regions: [
-			{ code: 'US', name: 'Estados Unidos', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'AR', name: 'Argentina', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'BR', name: 'Brasil', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'MX', name: 'México', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
-			{ code: 'ES', name: 'España', status: 'scheduled', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'US', name: 'Estados Unidos', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'AR', name: 'Argentina', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'BR', name: 'Brasil', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'MX', name: 'México', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
+			{ code: 'ES', name: 'España', status: 'unpublished', scheduledAt: '2025-12-15T00:00:00Z' },
 		],
 	},
 };

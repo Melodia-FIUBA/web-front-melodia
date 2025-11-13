@@ -5,12 +5,12 @@ import { AVAILABILITY_MOCK } from './mock';
 export type RegionAvailability = {
   code: string;
   name: string;
-  status: 'published' | 'scheduled' | 'not-available-region' | 'blocked-admin';
+  status: 'published' | 'unpublished' | 'not-available-region' | 'blocked-admin';
   scheduledAt: string | null;
 };
 
 export type AvailabilityDetails = {
-  effectiveStatus: 'published' | 'scheduled' | 'not-available-region' | 'blocked-admin';
+  effectiveStatus: 'published' | 'unpublished' | 'not-available-region' | 'blocked-admin';
   scheduledAt?: string | null;
   regions: RegionAvailability[];
 };
