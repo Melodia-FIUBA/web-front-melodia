@@ -29,6 +29,9 @@ export async function GET(request: Request) {
             CRUD_ID_COLLECTIONS_PATH: process.env.CRUD_ID_COLLECTIONS_PATH ?? "",
             CRUD_ID_SONGS_PATH: process.env.CRUD_ID_SONGS_PATH ?? "",
             CRUD_ID_PLAYLISTS_PATH: process.env.CRUD_ID_PLAYLISTS_PATH ?? "",
+            APPEARANCES_SONGS_PATH: process.env.APPEARANCES_SONGS_PATH ?? "",
+            APPEARANCES_COLLECTIONS_PATH: process.env.APPEARANCES_COLLECTIONS_PATH ?? "",
+            COVER_DOWNLOAD_PATH: process.env.COVER_DOWNLOAD_PATH ?? "",
         };
     } else {
         payload = {

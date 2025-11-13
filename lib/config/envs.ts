@@ -15,6 +15,9 @@ type RuntimeConfig = {
     CRUD_ID_COLLECTIONS_PATH: string;
     CRUD_ID_SONGS_PATH: string;
     CRUD_ID_PLAYLISTS_PATH: string;
+    APPEARANCES_SONGS_PATH: string;
+    APPEARANCES_COLLECTIONS_PATH: string;
+    COVER_DOWNLOAD_PATH: string;
 };
 
 // Memo en módulo para no pegarle mil veces al endpoint
@@ -46,6 +49,9 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                     CRUD_ID_COLLECTIONS_PATH: "",
                     CRUD_ID_SONGS_PATH: "",
                     CRUD_ID_PLAYLISTS_PATH: "",
+                    APPEARANCES_SONGS_PATH: "",
+                    APPEARANCES_COLLECTIONS_PATH: "",
+                    COVER_DOWNLOAD_PATH: "",
                 };
             }
         })();

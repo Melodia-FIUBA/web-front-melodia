@@ -15,7 +15,7 @@ export async function auditItemById(id: string, type: string): Promise<AuditEven
   }
 
   // Simular delay de red
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
   // Retornar datos mock
   return MOCK_AUDIT_DATA['s1'] || [];
