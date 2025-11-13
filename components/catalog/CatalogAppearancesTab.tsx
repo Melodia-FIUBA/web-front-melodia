@@ -117,7 +117,7 @@ export function CatalogAppearancesTab({ id, type }: CatalogAppearancesTabProps) 
                   </Table.Cell>
                   <Table.Cell>{collection.position ?? '-'}</Table.Cell>
                   <Table.Cell>
-                    {collection.type === 'playlist' ? (collection.owner || '-') : '-'}
+                    {collection.owner ?? '-'}
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -154,7 +154,6 @@ export function CatalogAppearancesTab({ id, type }: CatalogAppearancesTabProps) 
                   <Table.Cell>
                     <Text
                       as="span"
-                      color="blue.600"
                       cursor="pointer"
                       _hover={{ textDecoration: "underline" }}
                       onClick={() => openDetail(playlist.id, 'playlist')}
