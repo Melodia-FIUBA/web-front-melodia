@@ -31,6 +31,9 @@ interface SearchBarProps {
   setPublishedFrom: (date: string) => void;
   publishedTo: string;
   setPublishedTo: (date: string) => void;
+  // Order by field
+  orderBy: string;
+  setOrderBy: (order: string) => void;
   // whether the date range is valid (parent verifies)
   isDateRangeValid: boolean;
   // called when user applies the filters (parent will build API payload and send)
@@ -144,6 +147,31 @@ function StatusFilter({
   );
 }
 
+function OrderByFilter({
+  orderBy,
+  setOrderBy,
+}: {
+  orderBy: string;
+  setOrderBy: (v: string) => void;
+}) {
+  return (
+    <Box flex={1}>
+      <Text mb={2} fontSize="sm" fontWeight="medium">
+        Ordenar por
+      </Text>
+      <NativeSelectRoot>
+        <NativeSelectField
+          placeholder="Ninguno"
+          value={orderBy}
+          onChange={(e) => setOrderBy(e.target.value)}
+        >
+          <option value="date">Fecha Descendente</option>
+        </NativeSelectField>
+      </NativeSelectRoot>
+    </Box>
+  );
+}
+
 export function SearchBar({
   searchQuery,
   setSearchQuery,
@@ -159,6 +187,8 @@ export function SearchBar({
   setPublishedFrom,
   publishedTo,
   setPublishedTo,
+  orderBy,
+  setOrderBy,
   isDateRangeValid,
   onApply,
 }: SearchBarProps) {
@@ -286,6 +316,7 @@ export function SearchBar({
                 setPublishedTo={setPublishedTo}
               />
               <StatusFilter selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus} />
+              <OrderByFilter orderBy={orderBy} setOrderBy={setOrderBy} />
             </Stack>
           </Box>
         </Collapsible.Content>

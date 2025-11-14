@@ -6,12 +6,15 @@ export default function LoadBackgroundElement({size = "full"}: {size?: string}) 
   if (size === "menu") {
     height = "3xl";
     width = "full";
-  }else if (size == "users_menu") {
+  }else if (size == "users_menu" ) {
     height = "xl";
     width = "full";
   }
-  else if (size == "users_profile") {
+  else if (size == "users_profile" || size == "catalog_summary" || size == "catalog_detail_menu") {
     height = "2xl";
+    width = "full";
+  }else if (size == "catalog_search") {
+    height = "lg";
     width = "full";
   }
   else{

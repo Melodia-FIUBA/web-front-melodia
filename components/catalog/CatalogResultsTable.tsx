@@ -3,26 +3,38 @@
 import { Box, Text, Spinner, Table, Menu, IconButton, Portal } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { FiMoreVertical } from "react-icons/fi";
+import { useState } from "react";
+import { toaster } from "@/components/ui/toaster";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
+import LoadBackgroundElement from "../ui/loadElements";
+import { editItemById } from "@/lib/catalog/editItem";
+import { blockItemById, unblockItemById } from "@/lib/catalog/blockItem";
+import { BlockItemDialog } from "./BlockItemDialog";
+import { EditMetadataDialog } from "./EditMetadataDialog";
 
 // Componente de tabla de resultados - fácil de extraer a otro archivo
 export function CatalogResultsTable({
   items,
-  total,
   loading,
   searchQuery,
+  onActionComplete,
 }: {
   items: CatalogDetails[];
-  total: number | null;
   loading: boolean;
   searchQuery: string;
+  onActionComplete?: () => void;
 }) {
   const router = useRouter();
+  const [editOpen, setEditOpen] = useState<string | null>(null);
+  const [blockOpen, setBlockOpen] = useState<string | null>(null);
+  
+  // Datos del item que se está editando
+  const [currentEditItem, setCurrentEditItem] = useState<CatalogDetails | null>(null);
 
   const mapTypeToRoute = (type: string) => {
     // map backend types to the route segments you requested
-    if (type === "song") return "cancion";
-    if (type === "collection") return "coleccion";
+    if (type === "song") return "song";
+    if (type === "collection") return "collection";
     if (type === "playlist") return "playlist";
     return type;
   };
@@ -31,6 +43,60 @@ export function CatalogResultsTable({
     const routeType = mapTypeToRoute(item.type);
     router.push(`/admin/catalog/${routeType}/${item.id}`);
   };
+
+  const handleEditMetadata = async (title: string) => {
+    if (!currentEditItem) return;
+    const editDetails = { title, type: currentEditItem.type }; // Mantener parámetros para uso futuro
+    
+    const editedItem = await editItemById(String(currentEditItem.id),editDetails);
+    if (editedItem !== null) {
+      toaster.create({
+        title: "Metadatos actualizados",
+        description: `Los metadatos de "${editedItem.title}" han sido actualizados correctamente`,
+        type: "success",
+        duration: 3000,
+      });
+      setEditOpen(null);
+      setCurrentEditItem(null);
+      onActionComplete?.();
+    } else {
+      toaster.create({
+        title: "Error al actualizar metadatos",
+        description: `No se pudieron actualizar los metadatos de "${currentEditItem.title}". Inténtalo de nuevo más tarde.`,
+        type: "error",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleToggleBlock = async (item: CatalogDetails) => {
+    const isBlocked = item.effectiveStatus === "blocked-admin";
+    const result = isBlocked 
+      ? await unblockItemById(item.id) 
+      : await blockItemById(item.id);
+
+    if (result !== null) {
+      toaster.create({
+        title: isBlocked ? "Elemento desbloqueado" : "Elemento bloqueado",
+        description: `"${item.title}" ha sido ${
+          isBlocked ? "desbloqueado" : "bloqueado"
+        }`,
+        type: "success",
+        duration: 3000,
+      });
+      setBlockOpen(null);
+      onActionComplete?.();
+    } else {
+      toaster.create({
+        title: "Error al actualizar elemento",
+        description: `No se pudo ${isBlocked ? "desbloquear" : "bloquear"} "${item.title}". Inténtalo de nuevo más tarde.`,
+        type: "error",
+        duration: 3000,
+      });
+      setBlockOpen(null);
+    }
+  };
+
   // Helper para resaltar coincidencias de búsqueda
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text;
@@ -66,6 +132,7 @@ export function CatalogResultsTable({
         <Text mt={2} color="gray.600">
           Cargando resultados…
         </Text>
+        <LoadBackgroundElement size="catalog_search"></LoadBackgroundElement>
       </Box>
     );
   }
@@ -74,7 +141,7 @@ export function CatalogResultsTable({
     <Box borderWidth={1} borderRadius="lg" overflow="hidden">
       <Box p={4} borderBottomWidth={1}>
         <Text fontWeight={600} color="gray.700">
-          Resultados ({total ?? 0})
+          Resultados ({items.length})
         </Text>
       </Box>
 
@@ -89,9 +156,9 @@ export function CatalogResultsTable({
               <Table.Row>
                 <Table.ColumnHeader minW="200px">Título</Table.ColumnHeader>
                 <Table.ColumnHeader minW="120px">Tipo</Table.ColumnHeader>
-                <Table.ColumnHeader minW="150px">Artista</Table.ColumnHeader>
+                <Table.ColumnHeader minW="150px">Artista Principal</Table.ColumnHeader>
                 <Table.ColumnHeader minW="150px">Colección</Table.ColumnHeader>
-                <Table.ColumnHeader minW="120px">Publicado</Table.ColumnHeader>
+                <Table.ColumnHeader minW="120px">Fecha de Publicacion</Table.ColumnHeader>
                 <Table.ColumnHeader minW="140px">Estado</Table.ColumnHeader>
                 <Table.ColumnHeader minW="120px" textAlign="center">Acciones</Table.ColumnHeader>
               </Table.Row>
@@ -112,8 +179,11 @@ export function CatalogResultsTable({
                       : item.type}
                   </Table.Cell>
                   <Table.Cell color="gray.700">
-                    {item.mainArtist
-                      ? highlightMatch(item.mainArtist, searchQuery)
+                    {item.artists
+                      ? highlightMatch(
+                          Array.isArray(item.artists) ? item.artists.join(", ") : item.artists,
+                          searchQuery
+                        )
                       : "-"}
                   </Table.Cell>
                   <Table.Cell>
@@ -137,7 +207,7 @@ export function CatalogResultsTable({
                       bg={
                         item.effectiveStatus === "published"
                           ? "green.100"
-                          : item.effectiveStatus === "scheduled"
+                          : item.effectiveStatus === "unpublished"
                           ? "yellow.100"
                           : item.effectiveStatus === "blocked-admin"
                           ? "red.100"
@@ -148,7 +218,7 @@ export function CatalogResultsTable({
                       color={
                         item.effectiveStatus === "published"
                           ? "green.800"
-                          : item.effectiveStatus === "scheduled"
+                          : item.effectiveStatus === "unpublished"
                           ? "yellow.800"
                           : item.effectiveStatus === "blocked-admin"
                           ? "red.800"
@@ -157,7 +227,7 @@ export function CatalogResultsTable({
                           : "gray.800"
                       }
                     >
-                      {item.effectiveStatus === "scheduled"
+                      {item.effectiveStatus === "unpublished"
                         ? "Programado"
                         : item.effectiveStatus === "published"
                         ? "Publicado"
@@ -185,20 +255,56 @@ export function CatalogResultsTable({
                             <Menu.Item value="detalle" onClick={() => openDetail(item)}>
                               Abrir detalle
                             </Menu.Item>
-                            <Menu.Item value="metadata" onClick={() => console.log("Editar metadatos", item.id)}>
+                            <Menu.Item 
+                              value="metadata" 
+                              onClick={() => {
+                                setCurrentEditItem(item);
+                                setEditOpen(item.id);
+                              }}
+                            >
                               Editar metadatos
                             </Menu.Item>
                             <Menu.Item value="availability" onClick={() => console.log("Editar disponibilidad", item.id)}>
                               Editar disponibilidad
                             </Menu.Item>
                             <Menu.Separator />
-                            <Menu.Item value="toggleBlock" onClick={() => console.log("Toggle bloqueo", item.id)}>
+                            <Menu.Item 
+                              value="toggleBlock" 
+                              onClick={() => setBlockOpen(item.id)}
+                            >
                               {item.effectiveStatus === "blocked-admin" ? "Desbloquear" : "Bloquear"}
                             </Menu.Item>
                           </Menu.Content>
                         </Menu.Positioner>
                       </Portal>
                     </Menu.Root>
+
+                    {/* Dialog para editar metadatos */}
+                    {currentEditItem && (
+                      <EditMetadataDialog
+                        isOpen={editOpen === item.id}
+                        onClose={() => {
+                          setEditOpen(null);
+                          setCurrentEditItem(null);
+                        }}
+                        onConfirm={handleEditMetadata}
+                        itemTitle={currentEditItem.title}
+                        itemArtists={
+                          Array.isArray(currentEditItem.artists) 
+                            ? currentEditItem.artists.join(", ") 
+                            : currentEditItem.artists || ""
+                        }
+                      />
+                    )}
+
+                    {/* Dialog para bloquear/desbloquear */}
+                    <BlockItemDialog
+                      isOpen={blockOpen === item.id}
+                      onClose={() => setBlockOpen(null)}
+                      onConfirm={() => handleToggleBlock(item)}
+                      itemTitle={item.title}
+                      isBlocked={item.effectiveStatus === "blocked-admin"}
+                    />
                   </Table.Cell>
                 </Table.Row>
               ))}

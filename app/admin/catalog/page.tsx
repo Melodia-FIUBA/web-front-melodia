@@ -1,31 +1,38 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
-import { Box, VStack, Heading } from "@chakra-ui/react";
+import { Box, VStack, Heading, HStack, Button, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { SearchBar } from "@/components/searchBar";
 import {
   validateDateRange,
   CatalogDetails,
-  handleApplyFilters as handleApplyFiltersLib,
 } from "@/lib/catalog/searchCatalog";
-import { CatalogResultsTable } from "@/components/catalogResultsTable";
+import { CatalogResultsTable } from "@/components/catalog/CatalogResultsTable";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
+import { handleSearchFilters } from "./utils";
 
 export default function CatalogPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  // appliedQuery stores the last query that was "applied" by clicking Buscar/Aplicar
+  // highlighting should follow this value so it doesn't update on every keystroke
+  const [appliedQuery, setAppliedQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedType, setSelectedType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [publishedFrom, setPublishedFrom] = useState("");
   const [publishedTo, setPublishedTo] = useState("");
+  const [orderBy, setOrderBy] = useState("");
 
   const handleClearFilters = () => {
     setSelectedType("");
     setSelectedStatus("");
     setPublishedFrom("");
     setPublishedTo("");
+    setOrderBy("");
     setSearchQuery("");
+    setAppliedQuery("");
   };
 
   const activeFiltersCount = [
@@ -33,6 +40,7 @@ export default function CatalogPage() {
     selectedStatus,
     publishedFrom,
     publishedTo,
+    orderBy,
   ].filter((filter) => filter !== "").length;
 
   const router = useRouter();
@@ -43,19 +51,13 @@ export default function CatalogPage() {
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  // Apply filters -> delegate to library helper that encapsulates network + UI callbacks
-  function handleApplyFilters() {
-    void handleApplyFiltersLib(
-      { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo },
-      {
-        setItems,
-        setTotal,
-        setLoading,
-        setError,
-      }
-    );
-  }
+  // Pagination state
+  const [offset, setOffset] = useState(0);
+  const CATALOG_LIST_LIMIT = 10;
+
+  
   useEffect(() => {
     if (!isAdminLoggedIn()) {
       router.push("/login");
@@ -74,16 +76,19 @@ export default function CatalogPage() {
       const status = params.get("status") ?? "";
       const from = params.get("publishedFrom") ?? "";
       const to = params.get("publishedTo") ?? "";
+      const order = params.get("orderBy") ?? "";
 
-      const hasAny = searchParam || type || status || from || to;
+      const hasAny = searchParam || type || status || from || to || order;
       if (hasAny) {
         // schedule updates to avoid synchronous setState calls inside effect
         setTimeout(() => {
           if (searchParam) setSearchQuery(searchParam);
+          if (searchParam) setAppliedQuery(searchParam);
           if (type) setSelectedType(type);
           if (status) setSelectedStatus(status);
           if (from) setPublishedFrom(from);
           if (to) setPublishedTo(to);
+          if (order) setOrderBy(order);
           // mark initialization complete after restoring state from URL
           setInitFromUrl(true);
         }, 0);
@@ -109,6 +114,7 @@ export default function CatalogPage() {
     if (selectedStatus) params.set("status", selectedStatus);
     if (publishedFrom) params.set("publishedFrom", publishedFrom);
     if (publishedTo) params.set("publishedTo", publishedTo);
+    if (orderBy) params.set("orderBy", orderBy);
 
     const queryString = params.toString();
     const newUrl = queryString
@@ -125,6 +131,7 @@ export default function CatalogPage() {
     selectedStatus,
     publishedFrom,
     publishedTo,
+    orderBy,
     router,
     initFromUrl,
   ]);
@@ -150,17 +157,111 @@ export default function CatalogPage() {
           setPublishedFrom={setPublishedFrom}
           publishedTo={publishedTo}
           setPublishedTo={setPublishedTo}
+          orderBy={orderBy}
+          setOrderBy={setOrderBy}
           isDateRangeValid={validateDateRange(publishedFrom, publishedTo)}
-          onApply={handleApplyFilters}
+          onApply={() => {
+            // mark the current search query as applied so highlighting updates only on apply
+            setAppliedQuery(searchQuery);
+            setOffset(0); // Reset offset when applying new filters
+            handleSearchFilters(
+              { 
+                searchQuery, 
+                selectedType, 
+                selectedStatus, 
+                publishedFrom, 
+                publishedTo,
+                orderBy,
+                limit: String(CATALOG_LIST_LIMIT),
+                offset: '0'
+              },
+              { setItems, setTotal, setLoading, setError }
+            );
+          }}
         />
 
         {/* Results Section */}
         <CatalogResultsTable
           items={items}
-          total={total}
           loading={loading}
-          searchQuery={searchQuery}
+          // highlight using the last-applied query instead of live typing
+          searchQuery={appliedQuery}
+          onActionComplete={() => {
+            setReloadKey((k) => k + 1);
+            // Re-fetch current results
+            handleSearchFilters(
+              { 
+                searchQuery, 
+                selectedType, 
+                selectedStatus, 
+                publishedFrom, 
+                publishedTo,
+                orderBy,
+                limit: String(CATALOG_LIST_LIMIT),
+                offset: String(offset)
+              },
+              { setItems, setTotal, setLoading, setError }
+            );
+          }}
         />
+
+        {/* Paginado */}
+        <Box>
+          <HStack justify="center" gap={4} mt={2}>
+            <Button
+              onClick={() => {
+                const newOffset = Math.max(0, offset - CATALOG_LIST_LIMIT);
+                setOffset(newOffset);
+                handleSearchFilters(
+                  { 
+                    searchQuery, 
+                    selectedType, 
+                    selectedStatus, 
+                    publishedFrom, 
+                    publishedTo,
+                    orderBy,
+                    limit: String(CATALOG_LIST_LIMIT),
+                    offset: String(newOffset)
+                  },
+                  { setItems, setTotal, setLoading, setError }
+                );
+              }}
+              disabled={offset === 0 || loading}
+              variant="outline"
+            >
+              Anterior
+            </Button>
+
+              {/* / {total ?? 1} */}
+            <Text fontSize="sm" color="gray.600">
+              Página {Math.floor(offset / CATALOG_LIST_LIMIT) + 1} 
+            </Text>
+
+            <Button
+              onClick={() => {
+                const newOffset = offset + CATALOG_LIST_LIMIT;
+                setOffset(newOffset);
+                handleSearchFilters(
+                  { 
+                    searchQuery, 
+                    selectedType, 
+                    selectedStatus, 
+                    publishedFrom, 
+                    publishedTo,
+                    orderBy,
+                    limit: String(CATALOG_LIST_LIMIT),
+                    offset: String(newOffset)
+                  },
+                  { setItems, setTotal, setLoading, setError }
+                );
+              }}
+              disabled={loading || items.length < CATALOG_LIST_LIMIT}
+              variant="outline"
+            >
+              Siguiente
+            </Button>
+          </HStack>
+        </Box>
       </VStack>
     </Box>
   );

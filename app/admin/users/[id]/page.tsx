@@ -219,13 +219,21 @@ export default function UserDetailPage() {
                   Última conexión
                 </Text>
                 <Text fontSize="lg">
-                  {new Date(user.lastConnection).toLocaleDateString("es-ES", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {(() => {
+                    const d = new Date(user.lastConnection);
+                    // Si la fecha no es válida, mostrar mensaje amigable
+                    if (isNaN(d.getTime())) {
+                      return "El usuario no se ha conectado nunca";
+                    }
+                    // toLocaleString incluye fecha y hora según las opciones
+                    return d.toLocaleString("es-ES", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                  })()}
                 </Text>
               </Box>
             </Stack>
