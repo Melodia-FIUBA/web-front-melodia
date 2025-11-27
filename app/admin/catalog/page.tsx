@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { Box, VStack, Heading, HStack, Button, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { SearchBar } from "@/components/searchBar";
+import { SearchBar } from "@/components/users/searchBar";
 import {
   validateDateRange,
   CatalogDetails,

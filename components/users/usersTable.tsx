@@ -3,7 +3,7 @@
 import { Box, Text, Spinner, Table } from "@chakra-ui/react";
 import { useState } from "react";
 import { UserDetails } from "@/lib/users/getUsers";
-import LoadBackgroundElement from "./ui/loadElements";
+import LoadBackgroundElement from "../ui/loadElements";
 import { RowActions } from "./usersTableRowActions";
 
 interface UsersTableProps {

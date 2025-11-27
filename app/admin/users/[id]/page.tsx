@@ -17,7 +17,7 @@ import { isAdminLoggedIn } from "@/lib/log/cookies";
 import LoadBackgroundElement from "@/components/ui/loadElements";
 import { getLastSessionById, getUserById, UserProfile } from "@/lib/users/getUsers";
 import { blockUserById, unblockUserById } from "@/lib/users/blockUsers";
-import { BlockUserDialog } from "@/components/blockUserDialog";
+import { BlockUserDialog } from "@/components/users/blockUserDialog";
 
 export default function UserDetailPage() {
   const params = useParams();
