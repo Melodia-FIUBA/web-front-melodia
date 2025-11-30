@@ -9,6 +9,7 @@ import { CatalogSummaryTab } from "@/components/catalog/CatalogSummaryTab";
 import { CatalogAvailabilityTab } from "@/components/catalog/CatalogAvailabilityTab";
 import { CatalogAppearancesTab } from "@/components/catalog/CatalogAppearancesTab";
 import { CatalogAuditTab } from "@/components/catalog/CatalogAuditTab";
+import { CatalogMetricsTab } from "@/components/catalog/CatalogMetricsTab";
 import { getItemById } from "@/lib/catalog/summaryDetails";
 import LoadBackgroundElement from "@/components/ui/loadElements";
 
@@ -89,6 +90,7 @@ export default function CatalogDetailPage() {
           <Tabs.Trigger value="availability">Disponibilidad</Tabs.Trigger>
           <Tabs.Trigger value="appearances">Apariciones</Tabs.Trigger>
           <Tabs.Trigger value="audit">Auditoría</Tabs.Trigger>
+          <Tabs.Trigger value="metrics">Métricas</Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="summary" p={4}>
@@ -105,6 +107,10 @@ export default function CatalogDetailPage() {
 
         <Tabs.Content value="audit" p={4}>
           <CatalogAuditTab id={id} type={type} />
+        </Tabs.Content>
+
+        <Tabs.Content value="metrics" p={4}>
+          <CatalogMetricsTab id={id} type={type} />
         </Tabs.Content>
       </Tabs.Root>
     </Box>
