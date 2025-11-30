@@ -1,6 +1,7 @@
 import { Box, Text, Stack, Heading, Spinner, Badge } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { getAvailabilityById, AvailabilityDetails } from "@/lib/catalog/availabilityDetails";
+import { WorldAvailabilityMap } from "./WorldAvailabilityMap";
 
 interface CatalogAvailabilityTabProps {
   id: string;
@@ -111,41 +112,8 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
           )}
         </Box>
 
-        {/* Detalle por región */}
-        <Box>
-          <Text fontWeight={600} mb={3}>Disponibilidad por Región</Text>
-          <Box background="gray.800" p={4} borderRadius="md">
-            <Stack gap={3}>
-              {availability.regions.map((region) => (
-                <Box
-                  key={region.code}
-                  p={3}
-                  background="gray.700"
-                  borderRadius="md"
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  flexWrap="wrap"
-                  gap={2}
-                >
-                  <Box>
-                    <Text fontWeight={600}>
-                      {region.name} ({region.code})
-                    </Text>
-                    {region.status === 'unpublished' && region.scheduledAt && (
-                      <Text fontSize="sm" color="gray.400" mt={1}>
-                        {formatDate(region.scheduledAt)}
-                      </Text>
-                    )}
-                  </Box>
-                  <Badge colorPalette={getStatusColor(region.status)} px={2} py={1}>
-                    {getStatusLabel(region.status)}
-                  </Badge>
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-        </Box>
+        {/* Mapa Mundial de Disponibilidad */}
+        <WorldAvailabilityMap availability={availability} />
       </Stack>
     </Box>
   );

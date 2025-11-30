@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Box, VStack, Heading, HStack, Button, Text } from "@chakra-ui/react";
-import { UsersTable } from "@/components/usersTable";
+import { UsersTable } from "@/components/users/usersTable";
 import { getUsersList, UserDetails } from "@/lib/users/getUsers";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 import { useRouter } from "next/navigation";

@@ -10,7 +10,7 @@ import { UserDetails } from "@/lib/users/getUsers";
 import { editUserById } from "@/lib/users/editUsers";
 import { deleteUserById } from "@/lib/users/deleteUsers";
 import { blockUserById, unblockUserById } from "@/lib/users/blockUsers";
-import { BlockUserDialog } from "@/components/blockUserDialog";
+import { BlockUserDialog } from "@/components/users/blockUserDialog";
 
 export function RowActions({
   user,

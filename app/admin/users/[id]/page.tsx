@@ -12,12 +12,13 @@ import {
 } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
 import { FiLock, FiUnlock } from "react-icons/fi";
+import { FaMusic } from "react-icons/fa";
 import { toaster } from "@/components/ui/toaster";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 import LoadBackgroundElement from "@/components/ui/loadElements";
 import { getLastSessionById, getUserById, UserProfile } from "@/lib/users/getUsers";
 import { blockUserById, unblockUserById } from "@/lib/users/blockUsers";
-import { BlockUserDialog } from "@/components/blockUserDialog";
+import { BlockUserDialog } from "@/components/users/blockUserDialog";
 
 export default function UserDetailPage() {
   const params = useParams();
@@ -138,16 +139,30 @@ export default function UserDetailPage() {
                 </Box>
               </Box>
             </Box>
-            <Button
-              colorScheme={isBlocked ? "green" : "orange"}
-              size="lg"
-              onClick={() => setBlockDialogOpen(true)}
-            >
-              {isBlocked ? <FiUnlock /> : <FiLock />}
-              <Box as="span" ml={2}>
-                {isBlocked ? "Desbloquear usuario" : "Bloquear usuario"}
-              </Box>
-            </Button>
+            <Stack direction="row" gap={3}>
+              <Button
+                colorScheme={isBlocked ? "green" : "orange"}
+                size="lg"
+                onClick={() => setBlockDialogOpen(true)}
+              >
+                {isBlocked ? <FiUnlock /> : <FiLock />}
+                <Box as="span" ml={2}>
+                  {isBlocked ? "Desbloquear usuario" : "Bloquear usuario"}
+                </Box>
+              </Button>
+              {user.role === "artist" && (
+                <Button
+                  colorScheme="purple"
+                  size="lg"
+                  onClick={() => router.push(`/admin/artistpanel/${userId}`)}
+                >
+                  <FaMusic />
+                  <Box as="span" ml={2}>
+                    Panel de Métricas de Artista
+                  </Box>
+                </Button>
+              )}
+            </Stack>
           </Stack>
         </Box>
 
