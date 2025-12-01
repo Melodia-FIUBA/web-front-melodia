@@ -5,6 +5,7 @@ import { useState } from "react";
 import { UserDetails } from "@/lib/users/getUsers";
 import LoadBackgroundElement from "../ui/loadElements";
 import { RowActions } from "./usersTableRowActions";
+import { getRoleColors } from "@/utils/role.utils";
 
 interface UsersTableProps {
   users: UserDetails[];
@@ -74,8 +75,7 @@ export function UsersTable({
                     borderRadius="md"
                     fontSize="xs"
                     fontWeight={500}
-                    bg="blue.100"
-                    color="blue.800"
+                    {...getRoleColors(user.role)}
                   >
                     {user.role}
                   </Box>
