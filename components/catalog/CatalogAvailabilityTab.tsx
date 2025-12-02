@@ -1,5 +1,9 @@
-import { Box, Text, Stack, Heading, Spinner, Badge } from "@chakra-ui/react";
+"use client";
+
+import { Box, Text, Stack, Heading, Spinner, Badge, Button } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { FaEdit } from "react-icons/fa";
 import { getAvailabilityById, AvailabilityDetails } from "@/lib/catalog/availabilityDetails";
 import { WorldAvailabilityMap } from "./WorldAvailabilityMap";
 
@@ -11,6 +15,7 @@ interface CatalogAvailabilityTabProps {
 export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps) {
   const [availability, setAvailability] = useState<AvailabilityDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     let mounted = true;
@@ -56,11 +61,11 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
     switch (status) {
       case 'published':
         return 'green';
-      case 'unpublished':
+      case 'scheduled':
         return 'blue';
-      case 'not-available-region':
+      case 'region_restricted':
         return 'orange';
-      case 'blocked-admin':
+      case 'blocked_by_admin':
         return 'red';
       default:
         return 'gray';
@@ -72,11 +77,11 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
     switch (status) {
       case 'published':
         return 'Publicado';
-      case 'unpublished':
+      case 'scheduled':
         return 'Programado';
-      case 'not-available-region':
+      case 'region_restricted':
         return 'No disponible en región';
-      case 'blocked-admin':
+      case 'blocked_by_admin':
         return 'Bloqueado por admin';
       default:
         return status;
@@ -105,15 +110,28 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
           <Badge colorPalette={getStatusColor(availability.effectiveStatus)} fontSize="md" px={3} py={1}>
             {getStatusLabel(availability.effectiveStatus)}
           </Badge>
-          {availability.effectiveStatus === 'unpublished' && availability.scheduledAt && (
+          {availability.effectiveStatus === 'scheduled' && availability.scheduledAt && (
             <Text mt={2} color="gray.400">
               Fecha programada: {formatDate(availability.scheduledAt)}
             </Text>
           )}
         </Box>
 
-        {/* Mapa Mundial de Disponibilidad */}
-        <WorldAvailabilityMap availability={availability} />
+        {/* Mapa Mundial de Disponibilidad - Solo para contenido que no sea playlist */}
+        {type !== 'playlist' && (
+          <Box>
+            <WorldAvailabilityMap availability={availability} />
+            <Box mt={3} display="flex" justifyContent="flex-end">
+              <Button
+                size="sm"
+                onClick={() => router.push(`/admin/catalog/${type}/${id}/edit-policy`)}
+              >
+                <FaEdit style={{ marginRight: 8 }} />
+                Editar disponibilidad
+              </Button>
+            </Box>
+          </Box>
+        )}
       </Stack>
     </Box>
   );

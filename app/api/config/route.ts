@@ -32,6 +32,11 @@ export async function GET(request: Request) {
             APPEARANCES_SONGS_PATH: process.env.APPEARANCES_SONGS_PATH ?? "",
             APPEARANCES_COLLECTIONS_PATH: process.env.APPEARANCES_COLLECTIONS_PATH ?? "",
             COVER_DOWNLOAD_PATH: process.env.COVER_DOWNLOAD_PATH ?? "",
+            CRUD_BLOCK_SONG_PATH: process.env.CRUD_BLOCK_SONG_PATH ?? "",
+            GET_ID_BLOCKED_SONG_PATH: process.env.GET_ID_BLOCKED_SONG_PATH ?? "",
+            GET_BLOCKED_SONGS_HISTORY_PATH: process.env.GET_BLOCKED_SONGS_HISTORY_PATH ?? "",
+            GET_SONGS_REASON_CODES_PATH: process.env.GET_SONGS_REASON_CODES_PATH ?? "",
+            UNBLOCK_SONGS_PATH: process.env.UNBLOCK_SONGS_PATH ?? "",
         };
     } else {
         payload = {

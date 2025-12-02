@@ -7,7 +7,9 @@ export async function getCover(item: CatalogDetails): Promise<string | null> {
     try {
         const cfg = await getRuntimeConfig();
         
-        const collection_url = new URL(`${cfg.COVER_DOWNLOAD_PATH}?file_type=cover&resource_id=${item.id}`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        // Use 'playlist_cover' for playlists, 'cover' for collections (albums/EPs/singles)
+        const fileType = item.type === 'playlist' ? 'playlist_cover' : 'cover';
+        const collection_url = new URL(`${cfg.COVER_DOWNLOAD_PATH}?file_type=${fileType}&resource_id=${item.id}`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 

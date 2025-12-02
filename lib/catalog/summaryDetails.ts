@@ -43,6 +43,8 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
 
             const userBody = await getUserById(body.created_by_user_id);
 
+            const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(body.id, "collection");
+
             const item: CatalogDetails = {
                 id: body.id ?? "",
                 type: "collection",
@@ -62,7 +64,8 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
                     duration: song.duration ?? null,
                 })),
                 publishedAt: body.release_date ?? null,
-                effectiveStatus: body.status === "published" ? "published" : "unpublished", //TODO: faltan estados
+                effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : (body.computed_status ?? 'published'),
+                backendEffectiveStatus: body.computed_status ?? 'published',
                 coverUrl: body.cover_url ?? null,
             }
             return item;
@@ -98,7 +101,7 @@ export async function getPlaylistDetailsById(playlistId: string): Promise<Catalo
         if (res.ok && body) {
 
             const userBody = await getUserById(body.created_by_user_id);
-
+            console.log("BODY PLAYLIST", body);
             const item: CatalogDetails = {
                 id: body.id ?? "",
                 type: "playlist",
@@ -118,7 +121,7 @@ export async function getPlaylistDetailsById(playlistId: string): Promise<Catalo
                     duration: song.duration ?? null,
                 })),
                 publishedAt: body.created_at ?? null,
-                effectiveStatus: body.is_public === "published" ? "published" : "unpublished", //TODO: faltan estados
+                effectiveStatus: body.is_public === true ? "published" : "scheduled",
                 coverUrl: body.cover_url ?? null,
             }
             return item;
@@ -156,6 +159,9 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
             const userBody = await getUserById(body.owner_id);
             const collBody = await getCollectionDetailsById(body.collection_id);
 
+            const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(body.id, "song");
+
+
             const item: CatalogDetails = {
                 id: body.id ?? "",
                 type: "song",
@@ -170,7 +176,8 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
                 owner: null,
                 songs: undefined,
                 publishedAt: body.created_at ?? null,
-                effectiveStatus: body.is_published ? 'published' : 'unpublished', //TODO: no considera si esta bloqueado o por region
+                effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : collBody?.effectiveStatus,
+                backendEffectiveStatus: collBody?.backendEffectiveStatus,
             }
             return item;
         } else {
@@ -179,4 +186,42 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
     } catch {
         return null;
     }
+}
+// El primer boolean indica si está bloqueado en una region, el segundo si es globalmente
+export async function getIfEffectiveStatusBlocked(id: string, type: string): Promise<[boolean, boolean]> {
+    const cfg = await getRuntimeConfig();
+
+    const search_songs_url = new URL(`${cfg.GET_BLOCKED_SONGS_HISTORY_PATH}`.replace(':id', id).replace(':type', type), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+
+    const token = getToken();
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(search_songs_url, {
+        method: "GET",
+        headers: headers,
+    });
+
+    if (!res.ok) {
+        return [false, false];
+    }
+
+    const body = await res.json();
+
+    if (body && body.blocks) {
+        for (const block of body.blocks) {
+            if (block.is_active) {
+                if (block.regions.includes("GLOBAL")) {
+                    return [false, true];
+                } else {
+                    return [true, false];
+                }
+            }
+        }
+    }
+    return [false, false];
 }

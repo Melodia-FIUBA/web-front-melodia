@@ -13,11 +13,11 @@ export function WorldAvailabilityMap({ availability }: WorldAvailabilityMapProps
     switch (status) {
       case 'published':
         return 'Publicado';
-      case 'unpublished':
+      case 'scheduled':
         return 'Programado';
-      case 'not-available-region':
+      case 'region_restricted':
         return 'No disponible en región';
-      case 'blocked-admin':
+      case 'blocked_by_admin':
         return 'Bloqueado por admin';
       default:
         return status;
@@ -41,11 +41,11 @@ export function WorldAvailabilityMap({ availability }: WorldAvailabilityMapProps
     switch (region.status) {
       case 'published':
         return '#10b981'; // green
-      case 'unpublished':
+      case 'scheduled':
         return '#fbbf24'; // yellow
-      case 'not-available-region':
+      case 'region_restricted':
         return '#ef4444'; // red
-      case 'blocked-admin':
+      case 'blocked_by_admin':
         return '#7c2d12'; // bordó/dark red
       default:
         return '#6b7280'; // gray

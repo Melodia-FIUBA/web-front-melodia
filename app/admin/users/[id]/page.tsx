@@ -19,6 +19,7 @@ import LoadBackgroundElement from "@/components/ui/loadElements";
 import { getLastSessionById, getUserById, UserProfile } from "@/lib/users/getUsers";
 import { blockUserById, unblockUserById } from "@/lib/users/blockUsers";
 import { BlockUserDialog } from "@/components/users/blockUserDialog";
+import { getRoleColors } from "@/utils/role.utils";
 
 export default function UserDetailPage() {
   const params = useParams();
@@ -158,7 +159,7 @@ export default function UserDetailPage() {
                 >
                   <FaMusic />
                   <Box as="span" ml={2}>
-                    Panel de Métricas de Artista
+                    Panel de Métricas del Artista
                   </Box>
                 </Button>
               )}
@@ -196,10 +197,9 @@ export default function UserDetailPage() {
                   borderRadius="md"
                   fontSize="sm"
                   fontWeight={500}
-                  bg="blue.100"
-                  color="blue.800"
                   display="inline-block"
                   mt={1}
+                  {...getRoleColors(user.role)}
                 >
                   {user.role}
                 </Box>

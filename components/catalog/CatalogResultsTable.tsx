@@ -8,7 +8,7 @@ import { toaster } from "@/components/ui/toaster";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import LoadBackgroundElement from "../ui/loadElements";
 import { editItemById } from "@/lib/catalog/editItem";
-import { blockItemById, unblockItemById } from "@/lib/catalog/blockItem";
+import { blockItemGloballyById, unblockItemGloballyById } from "@/lib/catalog/blockItem";
 import { BlockItemDialog } from "./BlockItemDialog";
 import { EditMetadataDialog } from "./EditMetadataDialog";
 
@@ -44,6 +44,11 @@ export function CatalogResultsTable({
     router.push(`/admin/catalog/${routeType}/${item.id}`);
   };
 
+  const openEditAvailability = (item: CatalogDetails) => {
+    const routeType = mapTypeToRoute(item.type);
+    router.push(`/admin/catalog/${routeType}/${item.id}/edit-policy`);
+  };
+
   const handleEditMetadata = async (title: string) => {
     if (!currentEditItem) return;
     const editDetails = { title, type: currentEditItem.type }; // Mantener parámetros para uso futuro
@@ -69,11 +74,11 @@ export function CatalogResultsTable({
     }
   };
 
-  const handleToggleBlock = async (item: CatalogDetails) => {
-    const isBlocked = item.effectiveStatus === "blocked-admin";
+  const handleToggleBlock = async (item: CatalogDetails, reasonCode?: string) => {
+    const isBlocked = item.effectiveStatus === "blocked_by_admin";
     const result = isBlocked 
-      ? await unblockItemById(item.id) 
-      : await blockItemById(item.id);
+      ? await unblockItemGloballyById(item.id, item.type) 
+      : await blockItemGloballyById(item.id, item.type, reasonCode || "unspecified");
 
     if (result !== null) {
       toaster.create({
@@ -207,33 +212,33 @@ export function CatalogResultsTable({
                       bg={
                         item.effectiveStatus === "published"
                           ? "green.100"
-                          : item.effectiveStatus === "unpublished"
+                          : item.effectiveStatus === "scheduled"
                           ? "yellow.100"
-                          : item.effectiveStatus === "blocked-admin"
+                          : item.effectiveStatus === "blocked_by_admin"
                           ? "red.100"
-                          : item.effectiveStatus === "not-available-region"
+                          : item.effectiveStatus === "region_restricted"
                           ? "orange.100"
                           : "gray.100"
                       }
                       color={
                         item.effectiveStatus === "published"
                           ? "green.800"
-                          : item.effectiveStatus === "unpublished"
+                          : item.effectiveStatus === "scheduled"
                           ? "yellow.800"
-                          : item.effectiveStatus === "blocked-admin"
+                          : item.effectiveStatus === "blocked_by_admin"
                           ? "red.800"
-                          : item.effectiveStatus === "not-available-region"
+                          : item.effectiveStatus === "region_restricted"
                           ? "orange.800"
                           : "gray.800"
                       }
                     >
-                      {item.effectiveStatus === "unpublished"
+                      {item.effectiveStatus === "scheduled"
                         ? "Programado"
                         : item.effectiveStatus === "published"
                         ? "Publicado"
-                        : item.effectiveStatus === "not-available-region"
+                        : item.effectiveStatus === "region_restricted"
                         ? "No disponible"
-                        : item.effectiveStatus === "blocked-admin"
+                        : item.effectiveStatus === "blocked_by_admin"
                         ? "Bloqueado"
                         : item.effectiveStatus ?? "-"}
                     </Box>
@@ -264,15 +269,20 @@ export function CatalogResultsTable({
                             >
                               Editar metadatos
                             </Menu.Item>
-                            <Menu.Item value="availability" onClick={() => console.log("Editar disponibilidad", item.id)}>
+                            <Menu.Item
+                              value="availability"
+                              onClick={() => openEditAvailability(item)}
+                              disabled={item.type === "playlist"}
+                            >
                               Editar disponibilidad
                             </Menu.Item>
                             <Menu.Separator />
                             <Menu.Item 
                               value="toggleBlock" 
                               onClick={() => setBlockOpen(item.id)}
+                              disabled={item.type === "playlist"}
                             >
-                              {item.effectiveStatus === "blocked-admin" ? "Desbloquear" : "Bloquear"}
+                              {item.effectiveStatus === "blocked_by_admin" ? "Desbloquear" : "Bloquear"}
                             </Menu.Item>
                           </Menu.Content>
                         </Menu.Positioner>
@@ -301,9 +311,9 @@ export function CatalogResultsTable({
                     <BlockItemDialog
                       isOpen={blockOpen === item.id}
                       onClose={() => setBlockOpen(null)}
-                      onConfirm={() => handleToggleBlock(item)}
+                      onConfirm={(reasonCode) => handleToggleBlock(item, reasonCode)}
                       itemTitle={item.title}
-                      isBlocked={item.effectiveStatus === "blocked-admin"}
+                      isBlocked={item.effectiveStatus === "blocked_by_admin"}
                     />
                   </Table.Cell>
                 </Table.Row>

@@ -1,7 +1,19 @@
 import { Box, Text, Stack, Table, Spinner } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { auditItemById, AuditEvent } from "@/lib/catalog/auditDetails";
+import { auditItemById } from "@/lib/catalog/auditDetails";
 
+export interface AuditEvent {
+  id: number;
+  created_at: string;
+  created_by_admin_id: string;
+  deactivated_at: string | null;
+  deactivated_by_admin_id: string | null;
+  reason_code: string;
+  regions: string[];
+  is_active: boolean;
+  target_id: number;
+  target_type: string;
+}
 interface CatalogAuditTabProps {
   id: string;
   type: string;
@@ -39,12 +51,12 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
     );
   }
 
-  // Solo las canciones tienen auditoría
-  if (type !== 'song') {
+  // Solo las canciones y colecciones tienen auditoría
+  if (type !== 'song' && type !== 'collection') {
     return (
       <Box background="gray.900" p={4} borderRadius="md" minH="70vh">
         <Text color="gray.500">
-          La auditoría solo está disponible para canciones.
+          La auditoría solo está disponible para canciones y colecciones.
         </Text>
       </Box>
     );
@@ -54,25 +66,29 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
     return (
       <Box background="gray.900" p={4} borderRadius="md" minH="70vh">
         <Text color="gray.500">
-          No hay eventos de auditoría para esta canción.
+          No hay eventos de auditoría para este elemento.
         </Text>
       </Box>
     );
   }
 
-  const getEventLabel = (event: AuditEvent['event']) => {
-    switch (event) {
-      case 'blocked':
-        return 'Bloqueado';
-      case 'unblocked':
-        return 'Desbloqueado';
-      case 'region-unavailable':
-        return 'No disponible en región';
-      case 'region-available':
-        return 'Disponible en región';
-      default:
-        return event;
+  const getEventLabel = (regions: string[]) => {
+    if (regions.includes('GLOBAL')) {
+      return 'Bloqueado';
     }
+    return 'No disponible en región';
+  };
+
+  const getReasonLabel = (reasonCode: string) => {
+    const reasons: Record<string, string> = {
+      'copyright_violation': 'Violación de derechos de autor',
+      'explicit_content': 'Contenido explícito',
+      'legal_request': 'Solicitud legal',
+      'terms_violation': 'Violación de términos',
+      'legacy_migration': 'Migración de sistema anterior',
+      'unspecified': 'No especificado',
+    };
+    return reasons[reasonCode] || reasonCode;
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -97,19 +113,25 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
         <Table.Root variant="outline" size="sm">
           <Table.Header>
             <Table.Row>
-              <Table.ColumnHeader>Usuario</Table.ColumnHeader>
-              <Table.ColumnHeader>Fecha y hora</Table.ColumnHeader>
               <Table.ColumnHeader>Evento</Table.ColumnHeader>
-              <Table.ColumnHeader>Alcance/Región</Table.ColumnHeader>
+              <Table.ColumnHeader>Usuario</Table.ColumnHeader>
+              <Table.ColumnHeader>Fecha y hora de creación</Table.ColumnHeader>
+              <Table.ColumnHeader>Motivo</Table.ColumnHeader>
+              <Table.ColumnHeader>Regiones de Vigencia</Table.ColumnHeader>
+              <Table.ColumnHeader>Fecha y hora de desactivación</Table.ColumnHeader>
+              <Table.ColumnHeader>Usuario desactivador</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>
             {events.map((event) => (
               <Table.Row key={event.id}>
-                <Table.Cell>{event.user}</Table.Cell>
-                <Table.Cell>{formatTimestamp(event.timestamp)}</Table.Cell>
-                <Table.Cell>{getEventLabel(event.event)}</Table.Cell>
-                <Table.Cell>{event.region || '-'}</Table.Cell>
+                <Table.Cell>{getEventLabel(event.regions)}</Table.Cell>
+                <Table.Cell>{event.created_by_admin_id}</Table.Cell>
+                <Table.Cell>{formatTimestamp(event.created_at)}</Table.Cell>
+                <Table.Cell>{getReasonLabel(event.reason_code)}</Table.Cell>
+                <Table.Cell>{event.regions.join(', ')}</Table.Cell>
+                <Table.Cell>{event.deactivated_at ? formatTimestamp(event.deactivated_at) : 'N/A (BLOQUEO ACTIVO)'}</Table.Cell>
+                <Table.Cell>{event.deactivated_by_admin_id || 'N/A (BLOQUEO ACTIVO)'}</Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>

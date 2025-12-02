@@ -11,36 +11,29 @@ import {
 } from "recharts";
 import { getISOWeek as getWeekLabel } from "./utils";
 import { Card, Heading } from "@chakra-ui/react";
+import { getNewUsersData } from "@/lib/metrics/users_metrics";
 
-export default function ActiveUsersGraph() {
-  /*const data = [
-      { sale: 10, month: "January" },
-      { sale: 95, month: "February" },
-      { sale: 87, month: "March" },
-      { sale: 88, month: "May" },
-      { sale: 65, month: "June" },
-      { sale: 90, month: "August" },
-    ];*/
+interface NewUsersGraphProps {
+  timeframe?: "diario" | "semanal" | "mensual";
+}
 
-  const data = [
-    { usuarios: 10, weekStart: "2025-10-29" },
-    { usuarios: 95, weekStart: "2025-11-05" },
-    { usuarios: 87, weekStart: "2025-11-12" },
-    { usuarios: 88, weekStart: "2025-11-19" },
-    { usuarios: 65, weekStart: "2025-11-26" },
-    { usuarios: 90, weekStart: "2025-12-03" },
-  ];
+export default function NewUsersGraph({ timeframe = "mensual" }: NewUsersGraphProps) {
+
+  const data = getNewUsersData(timeframe);
 
   const chart = useChart({
     data,
-    series: [{ name: "usuarios", color: "teal.solid" }],
+    series: [{ name: "usuarios", color: "blue.solid" }],
   });
+
+  // Determinar la key del eje X según el timeframe
+  const xAxisKey: string = timeframe === "diario" ? "date" : timeframe === "semanal" ? "weekStart" : "month";
 
   return (
     <Card.Root bg="gray.800" borderColor="gray.700" p={6}>
       <Card.Body>
         <Heading size="lg" color="white" mb={4}>
-          Usuarios Activos
+          Nuevos Registros de Usuarios
         </Heading>
       </Card.Body>
 
@@ -49,10 +42,15 @@ export default function ActiveUsersGraph() {
           <CartesianGrid stroke={chart.color("border")} vertical={false} />
           <XAxis
             axisLine={false}
-            dataKey={chart.key("weekStart")}
+            dataKey={chart.key(xAxisKey)}
             tickFormatter={(value) => {
+              if (timeframe === "mensual") {
+                return String(value);
+              }
               const d = new Date(String(value));
-              return `${getWeekLabel(d)}`;
+              return timeframe === "diario" 
+                ? d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })
+                : `${getWeekLabel(d)}`;
             }}
             stroke={chart.color("border")}
           />
@@ -69,9 +67,9 @@ export default function ActiveUsersGraph() {
           />
           {chart.series.map((item) => (
             <Line
-              key={item.name}
+              key={item.name as string}
               isAnimationActive={false}
-              dataKey={chart.key(item.name)}
+              dataKey={chart.key(item.name) as string}
               stroke={chart.color(item.color)}
               strokeWidth={2}
               dot={false}
