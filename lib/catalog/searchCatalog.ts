@@ -56,8 +56,15 @@ export type CatalogDetails = {
     }>;
     // Publication date in ISO (nullable)
     publishedAt?: string | null;
-    // Effective status as returned by the backend
+    // Effective status calculated in frontend
     effectiveStatus?:
+    | 'scheduled'
+    | 'published'
+    | 'region_restricted'
+    | 'blocked_by_admin'
+    | string;
+    // Effective status as returned by the backend
+    backendEffectiveStatus?:
     | 'scheduled'
     | 'published'
     | 'region_restricted'

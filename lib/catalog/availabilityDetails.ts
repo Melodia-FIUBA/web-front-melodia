@@ -27,7 +27,9 @@ export async function getAvailabilityById(id: string, type: string): Promise<Ava
   const cfg = await getRuntimeConfig();
   let regions_availability: RegionAvailability[] = [];
 
-  if (item?.effectiveStatus === 'scheduled') {
+  console.log("Item fetched for availability:", item);
+
+  if (item?.backendEffectiveStatus === 'scheduled') {
     regions_availability = getAllRegionsSameState("scheduled");
   } else {
     regions_availability = getAllRegionsSameState("published");

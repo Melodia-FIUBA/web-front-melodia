@@ -65,6 +65,7 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
                 })),
                 publishedAt: body.release_date ?? null,
                 effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : (body.computed_status ?? 'published'),
+                backendEffectiveStatus: body.computed_status ?? 'published',
                 coverUrl: body.cover_url ?? null,
             }
             return item;
@@ -176,6 +177,7 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
                 songs: undefined,
                 publishedAt: body.created_at ?? null,
                 effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : collBody?.effectiveStatus,
+                backendEffectiveStatus: collBody?.backendEffectiveStatus,
             }
             return item;
         } else {
