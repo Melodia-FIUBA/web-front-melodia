@@ -17,20 +17,26 @@ export function BlockItemDialog({
   itemTitle,
   isBlocked,
 }: BlockItemDialogProps) {
-  const [selectedReasonCode, setSelectedReasonCode] = useState<ReasonCodes>(ReasonCodes.unspecified);
+  // Allow empty selection initially (no option selected). Only a non-empty
+  // value different from 'unspecified' will enable the block action.
+  const [selectedReasonCode, setSelectedReasonCode] = useState<ReasonCodes | "">("");
+
+  // The selection is reset on close; no need to set state synchronously on open.
 
   const handleClose = () => {
-    setSelectedReasonCode(ReasonCodes.unspecified);
+    setSelectedReasonCode("");
     onClose();
   };
 
   const handleConfirm = () => {
     if (!isBlocked) {
-      onConfirm(selectedReasonCode);
+      // Prevent confirming if no valid reason selected
+      if (!selectedReasonCode) return;
+      onConfirm(selectedReasonCode as unknown as ReasonCodes);
     } else {
       onConfirm();
     }
-    setSelectedReasonCode(ReasonCodes.unspecified);
+    setSelectedReasonCode("");
   };
 
   if (!isOpen) return null;
@@ -75,7 +81,7 @@ export function BlockItemDialog({
                 <select
                   value={selectedReasonCode}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                    setSelectedReasonCode(e.target.value as ReasonCodes)
+                    setSelectedReasonCode(e.target.value as ReasonCodes | "")
                   }
                   style={{
                     width: "100%",
@@ -86,6 +92,7 @@ export function BlockItemDialog({
                     border: "1px solid #CBD5E0",
                   }}
                 >
+                  <option value="">-- Seleccione un motivo --</option>
                   {Object.entries(ReasonCodes).map(([key, value]) => (
                     <option key={key} value={key}>
                       {value}
@@ -104,6 +111,7 @@ export function BlockItemDialog({
               color={isBlocked ? "green" : "red"}
               variant="outline"
               onClick={handleConfirm}
+              disabled={!isBlocked && !selectedReasonCode}
             >
               {isBlocked ? "Desbloquear" : "Bloquear"}
             </Button>

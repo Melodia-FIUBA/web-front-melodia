@@ -130,8 +130,8 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
                 <Table.Cell>{formatTimestamp(event.created_at)}</Table.Cell>
                 <Table.Cell>{getReasonLabel(event.reason_code)}</Table.Cell>
                 <Table.Cell>{event.regions.join(', ')}</Table.Cell>
-                <Table.Cell>{event.deactivated_at ? formatTimestamp(event.deactivated_at) : 'No aplica (aún activo)'}</Table.Cell>
-                <Table.Cell>{event.deactivated_by_admin_id || 'No aplica (aún activo)'}</Table.Cell>
+                <Table.Cell>{event.deactivated_at ? formatTimestamp(event.deactivated_at) : 'N/A (BLOQUEO ACTIVO)'}</Table.Cell>
+                <Table.Cell>{event.deactivated_by_admin_id || 'N/A (BLOQUEO ACTIVO)'}</Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>

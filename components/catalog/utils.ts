@@ -259,5 +259,4 @@ export enum ReasonCodes {
     legal_request="Legal Request",
     terms_violation="Terms Violation",
     legacy_migration="Legacy Migration",
-    unspecified="Unspecified"
 }

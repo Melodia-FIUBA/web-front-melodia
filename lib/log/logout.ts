@@ -29,4 +29,5 @@ export async function logout() {
     console.error("Error clearing cache:", err);
     window.location.href = "/";
   }
+  window.location.href = "/";
 }
