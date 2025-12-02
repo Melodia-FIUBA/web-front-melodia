@@ -1,49 +1,35 @@
 "use client";
+import { ReasonCodes } from "@/components/catalog/utils";
 import { getRuntimeConfig } from "../config/envs";
 import { getToken } from "../log/cookies";
 import { CatalogDetails } from "./searchCatalog";
 
-export async function blockItemById(itemId: string): Promise<CatalogDetails | null> {
-    return await blockUnblockItemById(itemId, true);
-}
-
-export async function unblockItemById(itemId: string): Promise<CatalogDetails | null> {
-    return await blockUnblockItemById(itemId, false);
-}
-
-async function blockUnblockItemById(itemId: string, shouldBlock: boolean): Promise<CatalogDetails | null> {
+export async function blockItemGloballyById(itemId: string, itemType: string, reasonCode: string): Promise<CatalogDetails | null> {
     try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const cfg = await getRuntimeConfig();
-        
-        // TODO: Reemplazar con el endpoint real cuando esté disponible
-        // Por ahora, asumimos un endpoint similar a:
-        // PUT /songs/{id} o /collections/{id} o /playlists/{id}
-        // con body: { "blocked": true/false }
-        
         const token = getToken();
         const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        const block_url = new URL(cfg.CRUD_BLOCK_SONG_PATH, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+
 
         if (token) {
             headers["Authorization"] = `Bearer ${token}`;
         }
 
+        const reasonCodeBody = reasonCode as ReasonCodes ?? ReasonCodes.unspecified;
+
         const request = {
-            "blocked": shouldBlock
+            "target_type": itemType,
+            "target_id": Number(itemId),
+            "reason_code": reasonCodeBody,
+            "regions": [
+                "GLOBAL"
+            ]
         };
 
-        // Simulación de respuesta exitosa
-        // TODO: Implementar llamada real a la API cuando esté disponible
-        console.log(`${shouldBlock ? "Blocking" : "Unblocking"} item ${itemId}`, request);
-        
-        // Por ahora retornamos null para indicar que la función necesita implementación
-        // Cuando la API esté lista, descomentar el código siguiente:
-        
-        /*
-        const item_url = new URL(`/items/${itemId}`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
-        
-        const res = await fetch(item_url, {
-            method: "PUT",
+        const res = await fetch(block_url, {
+            method: "POST",
             headers: headers,
             body: JSON.stringify(request),
         });
@@ -51,23 +37,93 @@ async function blockUnblockItemById(itemId: string, shouldBlock: boolean): Promi
         const body = await res?.json();
 
         if (res.ok && body) {
-            // Mapear la respuesta de la API a CatalogDetails
-            const item: CatalogDetails = {
-                id: body.id ?? "",
-                type: body.type ?? "",
+            return {
+                id: body.target_id ?? "",
+                type: body.target_type ?? "",
                 title: body.title ?? "",
                 artists: body.artists ?? [],
-                effectiveStatus: body.blocked ? "blocked_by_admin" : body.status,
-                // ... otros campos según la respuesta de la API
+                effectiveStatus: "blocked_by_admin",
             };
-            return item;
-        } else {
-            return null;
         }
-        */
-        
+
         return null;
     } catch {
         return null;
     }
+}
+
+export async function unblockItemGloballyById(itemId: string, itemType: string): Promise<CatalogDetails | null> {
+    try {
+        const cfg = await getRuntimeConfig();
+        const token = getToken();
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        const blockIds = await getBlockId(itemId, itemType);
+
+        const block_url = new URL(cfg.UNBLOCK_SONGS_PATH.replace(":id", blockIds[0]), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+
+
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+
+        const res = await fetch(block_url, {
+            method: "PUT",
+            headers: headers,
+        });
+
+        const body = await res?.json();
+        console.log("RES UNBLOCK", res, body);
+
+        if (res.ok && body) {
+            return {
+                id: body.target_id ?? "",
+                type: body.target_type ?? "",
+                title: body.title ?? "",
+                artists: body.artists ?? [],
+                effectiveStatus: "blocked_by_admin",
+            };
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+async function getBlockId(id: string, type: string): Promise<string[]> {
+    const cfg = await getRuntimeConfig();
+
+    const search_songs_url = new URL(`${cfg.GET_BLOCKED_SONGS_HISTORY_PATH}`.replace(':id', id).replace(':type', type), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+
+    const token = getToken();
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(search_songs_url, {
+        method: "GET",
+        headers: headers,
+    });
+
+    if (!res.ok) {
+        return [];
+    }
+
+    const body = await res.json();
+
+    if (body && body.blocks) {
+        for (const block of body.blocks) {
+            if (block.is_active) {
+                if (block.regions.includes("GLOBAL")) {
+                    return [String(block.id)];
+                }
+            }
+        }
+    }
+    return [];
 }

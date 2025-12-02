@@ -8,7 +8,7 @@ import { toaster } from "@/components/ui/toaster";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import LoadBackgroundElement from "../ui/loadElements";
 import { editItemById } from "@/lib/catalog/editItem";
-import { blockItemById, unblockItemById } from "@/lib/catalog/blockItem";
+import { blockItemGloballyById, unblockItemGloballyById } from "@/lib/catalog/blockItem";
 import { BlockItemDialog } from "./BlockItemDialog";
 import { EditMetadataDialog } from "./EditMetadataDialog";
 
@@ -44,6 +44,11 @@ export function CatalogResultsTable({
     router.push(`/admin/catalog/${routeType}/${item.id}`);
   };
 
+  const openEditAvailability = (item: CatalogDetails) => {
+    const routeType = mapTypeToRoute(item.type);
+    router.push(`/admin/catalog/${routeType}/${item.id}/edit-policy`);
+  };
+
   const handleEditMetadata = async (title: string) => {
     if (!currentEditItem) return;
     const editDetails = { title, type: currentEditItem.type }; // Mantener parámetros para uso futuro
@@ -69,11 +74,11 @@ export function CatalogResultsTable({
     }
   };
 
-  const handleToggleBlock = async (item: CatalogDetails) => {
+  const handleToggleBlock = async (item: CatalogDetails, reasonCode?: string) => {
     const isBlocked = item.effectiveStatus === "blocked_by_admin";
     const result = isBlocked 
-      ? await unblockItemById(item.id) 
-      : await blockItemById(item.id);
+      ? await unblockItemGloballyById(item.id, item.type) 
+      : await blockItemGloballyById(item.id, item.type, reasonCode || "unspecified");
 
     if (result !== null) {
       toaster.create({
@@ -264,9 +269,9 @@ export function CatalogResultsTable({
                             >
                               Editar metadatos
                             </Menu.Item>
-                            <Menu.Item 
-                              value="availability" 
-                              onClick={() => console.log("Editar disponibilidad", item.id)}
+                            <Menu.Item
+                              value="availability"
+                              onClick={() => openEditAvailability(item)}
                               disabled={item.type === "playlist"}
                             >
                               Editar disponibilidad
@@ -306,7 +311,7 @@ export function CatalogResultsTable({
                     <BlockItemDialog
                       isOpen={blockOpen === item.id}
                       onClose={() => setBlockOpen(null)}
-                      onConfirm={() => handleToggleBlock(item)}
+                      onConfirm={(reasonCode) => handleToggleBlock(item, reasonCode)}
                       itemTitle={item.title}
                       isBlocked={item.effectiveStatus === "blocked_by_admin"}
                     />

@@ -139,8 +139,6 @@ function StatusFilter({
         >
           <option value="scheduled">Programado</option>
           <option value="published">Publicado</option>
-          <option value="region_restricted">No-disponible-región</option>
-          <option value="blocked_by_admin">Bloqueado-admin</option>
         </NativeSelectField>
       </NativeSelectRoot>
     </Box>

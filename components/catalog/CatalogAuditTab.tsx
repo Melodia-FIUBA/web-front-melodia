@@ -84,7 +84,9 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
       'copyright_violation': 'Violación de derechos de autor',
       'explicit_content': 'Contenido explícito',
       'legal_request': 'Solicitud legal',
-      'community_guidelines': 'Violación de normas comunitarias',
+      'terms_violation': 'Violación de términos',
+      'legacy_migration': 'Migración de sistema anterior',
+      'unspecified': 'No especificado',
     };
     return reasons[reasonCode] || reasonCode;
   };
@@ -128,8 +130,8 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
                 <Table.Cell>{formatTimestamp(event.created_at)}</Table.Cell>
                 <Table.Cell>{getReasonLabel(event.reason_code)}</Table.Cell>
                 <Table.Cell>{event.regions.join(', ')}</Table.Cell>
-                <Table.Cell>{event.deactivated_at ? formatTimestamp(event.deactivated_at) : '-'}</Table.Cell>
-                <Table.Cell>{event.deactivated_by_admin_id || '-'}</Table.Cell>
+                <Table.Cell>{event.deactivated_at ? formatTimestamp(event.deactivated_at) : 'No aplica (aún activo)'}</Table.Cell>
+                <Table.Cell>{event.deactivated_by_admin_id || 'No aplica (aún activo)'}</Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>

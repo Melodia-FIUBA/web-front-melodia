@@ -1,5 +1,9 @@
-import { Box, Text, Stack, Heading, Spinner, Badge } from "@chakra-ui/react";
+"use client";
+
+import { Box, Text, Stack, Heading, Spinner, Badge, Button } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { FaEdit } from "react-icons/fa";
 import { getAvailabilityById, AvailabilityDetails } from "@/lib/catalog/availabilityDetails";
 import { WorldAvailabilityMap } from "./WorldAvailabilityMap";
 
@@ -11,6 +15,7 @@ interface CatalogAvailabilityTabProps {
 export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps) {
   const [availability, setAvailability] = useState<AvailabilityDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     let mounted = true;
@@ -113,7 +118,20 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
         </Box>
 
         {/* Mapa Mundial de Disponibilidad - Solo para contenido que no sea playlist */}
-        {type !== 'playlist' && <WorldAvailabilityMap availability={availability} />}
+        {type !== 'playlist' && (
+          <Box>
+            <WorldAvailabilityMap availability={availability} />
+            <Box mt={3} display="flex" justifyContent="flex-end">
+              <Button
+                size="sm"
+                onClick={() => router.push(`/admin/catalog/${type}/${id}/edit-policy`)}
+              >
+                <FaEdit style={{ marginRight: 8 }} />
+                Editar disponibilidad
+              </Button>
+            </Box>
+          </Box>
+        )}
       </Stack>
     </Box>
   );
