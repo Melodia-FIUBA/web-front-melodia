@@ -4,7 +4,7 @@ import { getRuntimeConfig } from '../config/envs';
 import { getToken } from '../log/cookies';
 import { getUserById } from '../users/getUsers';
 import { SONGS_AND_OTHER_ITEMS_MOCK } from './mock';
-import { getCollectionDetailsById } from './summaryDetails';
+import { getCollectionDetailsById, getIfEffectiveStatusBlocked } from './summaryDetails';
 export { SONGS_AND_OTHER_ITEMS_MOCK };
 
 export function validateDateRange(publishedFrom?: string, publishedTo?: string) {
@@ -58,10 +58,10 @@ export type CatalogDetails = {
     publishedAt?: string | null;
     // Effective status as returned by the backend
     effectiveStatus?:
-    | 'unpublished'
+    | 'scheduled'
     | 'published'
-    | 'not-available-region'
-    | 'blocked-admin'
+    | 'region_restricted'
+    | 'blocked_by_admin'
     | string;
     coverUrl?: string;
 };
@@ -70,7 +70,7 @@ export type CatalogDetails = {
 
 
 export function buildSearchPayload(filters: CatalogFilters): string {
-    ///search?q=b&type=song,collection&status=published,unpublished&publication_date_from=2024-01-01&publication_date_to=2024-12-31&sort_by=date&limit=10&offset=0
+    ///search?q=b&type=song,collection&status=published,scheduled&publication_date_from=2024-01-01&publication_date_to=2024-12-31&sort_by=date&limit=10&offset=0
     const { searchQuery, selectedType, selectedStatus, publishedFrom, publishedTo, orderBy } = filters;
     let payload: string = "";
     if (searchQuery) payload += `q=${searchQuery}`;
@@ -133,7 +133,7 @@ export async function getCatalogResults(
                 if (item?.type === 'song') {
 
                     let collBody = await getCollectionDetailsById(item.collection_id);
-
+                    const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(item.id, "song");
                     let userBody = await getUserById(item.owner_id);
 
                     console.log("COLLECTION BODY IN SEARCH", collBody);
@@ -153,13 +153,13 @@ export async function getCatalogResults(
                         owner: null,
                         songs: undefined,
                         publishedAt: item.created_at ?? null,
-                        effectiveStatus: item.is_published ? 'published' : 'unpublished', //TODO: no considera si esta bloqueado o por region
+                        effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : collBody?.effectiveStatus,
                     });
                 } else if (item?.type === 'collection') {
 
 
                     let userBody = await getUserById(item.created_by_user_id);
-
+                    const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(item.id, "collection");
 
                     items.push({
                         id: item.id ?? "",
@@ -175,7 +175,7 @@ export async function getCatalogResults(
                         owner: null,
                         songs: [],
                         publishedAt: item.created_at ?? null,
-                        effectiveStatus: item.status === "published" ? "published" : "unpublished", //TODO: faltan estados
+                        effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : (item.computed_status ?? 'published'),
                     });
                 } else if (item?.type === 'playlist') {
 
@@ -195,17 +195,20 @@ export async function getCatalogResults(
                         owner: null,
                         songs: [],
                         publishedAt: item.created_at ?? null,
-                        effectiveStatus: item.status === "published" ? "published" : "unpublished", //TODO: faltan estados
+                        effectiveStatus: item.is_public === true ? "published" : "scheduled", 
                     });
                 }
             }
             console.log("ITEMS SEARCH CATALOG", items);
             const total = items.length; 
+
+
+            items = items.filter((item) => item.effectiveStatus === filters.selectedStatus || !filters.selectedStatus);
             return [items, total];
         } else {
             return [[], 0];
         }
-    } catch {
+    } catch  {
         return [[], 0];
     }
 }

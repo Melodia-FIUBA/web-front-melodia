@@ -57,7 +57,7 @@ async function blockUnblockItemById(itemId: string, shouldBlock: boolean): Promi
                 type: body.type ?? "",
                 title: body.title ?? "",
                 artists: body.artists ?? [],
-                effectiveStatus: body.blocked ? "blocked-admin" : body.status,
+                effectiveStatus: body.blocked ? "blocked_by_admin" : body.status,
                 // ... otros campos según la respuesta de la API
             };
             return item;

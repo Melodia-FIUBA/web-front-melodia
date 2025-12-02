@@ -18,6 +18,11 @@ type RuntimeConfig = {
     APPEARANCES_SONGS_PATH: string;
     APPEARANCES_COLLECTIONS_PATH: string;
     COVER_DOWNLOAD_PATH: string;
+    CRUD_BLOCK_SONG_PATH: string;
+    GET_ID_BLOCKED_SONG_PATH: string;
+    GET_BLOCKED_SONGS_HISTORY_PATH: string;
+    GET_SONGS_REASON_CODES_PATH: string;
+    UNBLOCK_SONGS_PATH: string;
 };
 
 // Memo en módulo para no pegarle mil veces al endpoint
@@ -28,7 +33,7 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
         // Usamos un IIFE async para poder leer adminLoginData (localStorage) y construir la URL
         configPromise = (async () => {
             const [token, role] = adminLoginData();
-            const params = new URLSearchParams({ token: token , rol: role});
+            const params = new URLSearchParams({ token: token, rol: role });
             try {
                 const r = await fetch(`/api/config?${params.toString()}`, { cache: "no-store" });
                 if (!r.ok) throw new Error("No se pudo cargar la configuración");
@@ -52,6 +57,11 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                     APPEARANCES_SONGS_PATH: "",
                     APPEARANCES_COLLECTIONS_PATH: "",
                     COVER_DOWNLOAD_PATH: "",
+                    CRUD_BLOCK_SONG_PATH: "",
+                    GET_ID_BLOCKED_SONG_PATH: "",
+                    GET_BLOCKED_SONGS_HISTORY_PATH: "",
+                    GET_SONGS_REASON_CODES_PATH: "",
+                    UNBLOCK_SONGS_PATH: "",
                 };
             }
         })();
