@@ -66,7 +66,7 @@ export function BlockItemDialog({
         >
           <VStack align="stretch" gap={4}>
             <Text fontWeight={600} fontSize="xl">
-              {isBlocked ? "Desbloquear elemento" : "Bloquear elemento"}
+              {isBlocked ? "Desbloquear elemento Globalmente" : "Bloquear elemento Globalmente"}
             </Text>
             <Text>
               ¿Estás seguro de que deseas {isBlocked ? "desbloquear" : "bloquear"}{" "}

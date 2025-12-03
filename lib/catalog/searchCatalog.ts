@@ -67,6 +67,7 @@ export type CatalogDetails = {
     | string;
     // Effective status as returned by the backend
     statusInfo?: any,
+    artist_blocked_regions?: string[];
     coverUrl?: string;
 };
 
@@ -204,7 +205,7 @@ export async function getCatalogResults(
             console.log("ITEMS SEARCH CATALOG", items);
             const total = items.length; 
 
-
+            //Quito cosas si quedaron mal su status
             items = items.filter((item) => item.effectiveStatus === filters.selectedStatus || !filters.selectedStatus);
             return [items, total];
         } else {

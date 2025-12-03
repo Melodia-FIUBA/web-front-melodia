@@ -67,6 +67,7 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
                 effectiveStatus: calculateEffectiveStatus(body.status_info, "collection"),
                 coverUrl: body.cover_url ?? null,
                 statusInfo: body.status_info ?? null,
+                artist_blocked_regions: body.artist_blocked_regions ?? undefined,
             }
             return item;
         } else {
@@ -123,6 +124,7 @@ export async function getPlaylistDetailsById(playlistId: string): Promise<Catalo
                 publishedAt: body.created_at ?? null,
                 effectiveStatus: calculateEffectiveStatus(body.status_info, "playlist", body.is_public),
                 coverUrl: body.cover_url ?? null,
+                artist_blocked_regions: body.artist_blocked_regions ?? undefined,
             }
             return item;
         } else {
@@ -176,7 +178,9 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
                 publishedAt: body.created_at ?? null,
                 effectiveStatus: calculateEffectiveStatus(body.status_info, "song"),
                 statusInfo: body.status_info ?? null,
+                artist_blocked_regions: body.artist_blocked_regions ?? undefined,
             }
+            console.log("BODY SONG", body);
             return item;
         } else {
             return null;

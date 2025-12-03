@@ -9,9 +9,10 @@ import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import LoadBackgroundElement from "../ui/loadElements";
 import { getStatusLabel, getStatusPalette } from "@/lib/utils/effectiveStatus";
 import { editItemById } from "@/lib/catalog/editItem";
-import { blockItemGloballyById, unblockItemGloballyById } from "@/lib/catalog/blockItem";
+import { blockItemGloballyById, unblockItemGloballyById, getActiveBlocks } from "@/lib/catalog/blockItem";
 import { BlockItemDialog } from "./BlockItemDialog";
 import { EditMetadataDialog } from "./EditMetadataDialog";
+import { ActiveBlock } from "@/types/regionalBlocks";
 
 // Componente de tabla de resultados - fácil de extraer a otro archivo
 export function CatalogResultsTable({
@@ -31,6 +32,10 @@ export function CatalogResultsTable({
   
   // Datos del item que se está editando
   const [currentEditItem, setCurrentEditItem] = useState<CatalogDetails | null>(null);
+  
+  // Map para trackear qué items tienen bloqueo global activo
+  const [globallyBlockedItems, setGloballyBlockedItems] = useState<Set<string>>(new Set());
+  const [checkingBlock, setCheckingBlock] = useState<string | null>(null);
 
   const mapTypeToRoute = (type: string) => {
     // map backend types to the route segments you requested
@@ -75,8 +80,40 @@ export function CatalogResultsTable({
     }
   };
 
+  const checkIfGloballyBlocked = async (item: CatalogDetails) => {
+    setCheckingBlock(item.id);
+    try {
+      const blocks = await getActiveBlocks(item.id, item.type);
+      const hasGlobalBlock = blocks.some((block: ActiveBlock) => 
+        block.regions.includes("GLOBAL")
+      );
+      
+      setGloballyBlockedItems(prev => {
+        const newSet = new Set(prev);
+        if (hasGlobalBlock) {
+          newSet.add(item.id);
+        } else {
+          newSet.delete(item.id);
+        }
+        return newSet;
+      });
+      
+      setBlockOpen(item.id);
+    } catch (error) {
+      console.error("Error checking global block status:", error);
+      toaster.create({
+        title: "Error al verificar estado",
+        description: "No se pudo verificar el estado de bloqueo. Inténtalo de nuevo.",
+        type: "error",
+        duration: 3000,
+      });
+    } finally {
+      setCheckingBlock(null);
+    }
+  };
+
   const handleToggleBlock = async (item: CatalogDetails, reasonCode?: string) => {
-    const isBlocked = item.effectiveStatus === "blocked_by_admin";
+    const isBlocked = globallyBlockedItems.has(item.id);
     const result = isBlocked 
       ? await unblockItemGloballyById(item.id, item.type) 
       : await blockItemGloballyById(item.id, item.type, reasonCode || "unspecified");
@@ -260,10 +297,14 @@ export function CatalogResultsTable({
                             <Menu.Separator />
                             <Menu.Item 
                               value="toggleBlock" 
-                              onClick={() => setBlockOpen(item.id)}
-                              disabled={item.type === "playlist"}
+                              onClick={() => checkIfGloballyBlocked(item)}
+                              disabled={item.type === "playlist" || checkingBlock === item.id}
                             >
-                              {item.effectiveStatus === "blocked_by_admin" ? "Desbloquear" : "Bloquear"}
+                              {checkingBlock === item.id 
+                                ? "Verificando..." 
+                                : globallyBlockedItems.has(item.id) 
+                                ? "Desbloquear Globalmente" 
+                                : "Bloquear Globalmente"}
                             </Menu.Item>
                           </Menu.Content>
                         </Menu.Positioner>
@@ -294,7 +335,7 @@ export function CatalogResultsTable({
                       onClose={() => setBlockOpen(null)}
                       onConfirm={(reasonCode) => handleToggleBlock(item, reasonCode)}
                       itemTitle={item.title}
-                      isBlocked={item.effectiveStatus === "blocked_by_admin"}
+                      isBlocked={globallyBlockedItems.has(item.id)}
                     />
                   </Table.Cell>
                 </Table.Row>
