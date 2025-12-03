@@ -3,16 +3,13 @@ import { useState, useEffect } from "react";
 import { auditItemById } from "@/lib/catalog/auditDetails";
 
 export interface AuditEvent {
-  id: number;
-  created_at: string;
-  created_by_admin_id: string;
-  deactivated_at: string | null;
-  deactivated_by_admin_id: string | null;
-  reason_code: string;
-  regions: string[];
-  is_active: boolean;
-  target_id: number;
-  target_type: string;
+  event_type: 'updated' | 'blocked' | 'unblocked' | 'published';
+  event_label: string;
+  changed_by_user_id: string;
+  timestamp: string;
+  reason: string;
+  block_id: string;
+  changes_display: string;
 }
 interface CatalogAuditTabProps {
   id: string;
@@ -72,37 +69,6 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
     );
   }
 
-  const getEventLabel = (regions: string[]) => {
-    if (regions.includes('GLOBAL')) {
-      return 'Bloqueado';
-    }
-    return 'No disponible en región';
-  };
-
-  const getReasonLabel = (reasonCode: string) => {
-    const reasons: Record<string, string> = {
-      'copyright_violation': 'Violación de derechos de autor',
-      'explicit_content': 'Contenido explícito',
-      'legal_request': 'Solicitud legal',
-      'terms_violation': 'Violación de términos',
-      'legacy_migration': 'Migración de sistema anterior',
-      'unspecified': 'No especificado',
-    };
-    return reasons[reasonCode] || reasonCode;
-  };
-
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString('es-AR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  };
-
   return (
     <Box background="gray.900" p={4} borderRadius="md" minH="70vh">
       <Stack gap={4}>
@@ -115,23 +81,23 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
             <Table.Row>
               <Table.ColumnHeader>Evento</Table.ColumnHeader>
               <Table.ColumnHeader>Usuario</Table.ColumnHeader>
-              <Table.ColumnHeader>Fecha y hora de creación</Table.ColumnHeader>
+              <Table.ColumnHeader>Fecha y hora</Table.ColumnHeader>
               <Table.ColumnHeader>Motivo</Table.ColumnHeader>
-              <Table.ColumnHeader>Regiones de Vigencia</Table.ColumnHeader>
-              <Table.ColumnHeader>Fecha y hora de desactivación</Table.ColumnHeader>
-              <Table.ColumnHeader>Usuario desactivador</Table.ColumnHeader>
+              <Table.ColumnHeader>Cambios</Table.ColumnHeader>
+              <Table.ColumnHeader>Block ID</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {events.map((event) => (
-              <Table.Row key={event.id}>
-                <Table.Cell>{getEventLabel(event.regions)}</Table.Cell>
-                <Table.Cell>{event.created_by_admin_id}</Table.Cell>
-                <Table.Cell>{formatTimestamp(event.created_at)}</Table.Cell>
-                <Table.Cell>{getReasonLabel(event.reason_code)}</Table.Cell>
-                <Table.Cell>{event.regions.join(', ')}</Table.Cell>
-                <Table.Cell>{event.deactivated_at ? formatTimestamp(event.deactivated_at) : 'N/A (BLOQUEO ACTIVO)'}</Table.Cell>
-                <Table.Cell>{event.deactivated_by_admin_id || 'N/A (BLOQUEO ACTIVO)'}</Table.Cell>
+            {events.map((event, index) => (
+              <Table.Row key={`${event.timestamp}-${index}`}>
+                <Table.Cell>{event.event_label}</Table.Cell>
+                <Table.Cell>{event.changed_by_user_id}</Table.Cell>
+                <Table.Cell>{event.timestamp}</Table.Cell>
+                <Table.Cell>{event.reason}</Table.Cell>
+                <Table.Cell>
+                  <Text fontSize="sm" whiteSpace="pre-line">{event.changes_display}</Text>
+                </Table.Cell>
+                <Table.Cell>{event.block_id}</Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>

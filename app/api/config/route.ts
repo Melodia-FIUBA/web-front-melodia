@@ -37,6 +37,8 @@ export async function GET(request: Request) {
             GET_BLOCKED_SONGS_HISTORY_PATH: process.env.GET_BLOCKED_SONGS_HISTORY_PATH ?? "",
             GET_SONGS_REASON_CODES_PATH: process.env.GET_SONGS_REASON_CODES_PATH ?? "",
             UNBLOCK_SONGS_PATH: process.env.UNBLOCK_SONGS_PATH ?? "",
+            AUDIT_COLLECTIONS_PATH: process.env.AUDIT_COLLECTIONS_PATH ?? "",
+            AUDIT_SONGS_PATH: process.env.AUDIT_SONGS_PATH ?? "",
         };
     } else {
         payload = {

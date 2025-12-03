@@ -23,6 +23,8 @@ type RuntimeConfig = {
     GET_BLOCKED_SONGS_HISTORY_PATH: string;
     GET_SONGS_REASON_CODES_PATH: string;
     UNBLOCK_SONGS_PATH: string;
+    AUDIT_COLLECTIONS_PATH: string;
+    AUDIT_SONGS_PATH: string;
 };
 
 // Memo en módulo para no pegarle mil veces al endpoint
@@ -62,6 +64,8 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                     GET_BLOCKED_SONGS_HISTORY_PATH: "",
                     GET_SONGS_REASON_CODES_PATH: "",
                     UNBLOCK_SONGS_PATH: "",
+                    AUDIT_COLLECTIONS_PATH: "",
+                    AUDIT_SONGS_PATH: "",
                 };
             }
         })();
