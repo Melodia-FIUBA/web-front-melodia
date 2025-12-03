@@ -65,7 +65,7 @@ function formatRegions(regions: string[] | undefined): string {
   if (regions.includes('GLOBAL')) {
     return 'Bloqueo Global';
   }
-  return regions
+  return "Bloqueado en " + regions
     .map(code => countryNamesES[code.toLowerCase()] || code)
     .join(', ');
 }

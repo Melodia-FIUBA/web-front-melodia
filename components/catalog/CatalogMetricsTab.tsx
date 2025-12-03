@@ -25,24 +25,27 @@ export function CatalogMetricsTab({ id, type }: CatalogMetricsTabProps) {
 
   return (
     <Box>
-      <Flex justify="flex-end" mb={6}>
-        <NativeSelect.Root size="md" width="200px">
-          <NativeSelect.Field 
-            value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value as "diario" | "semanal" | "mensual")}
-          >
-            <option value="diario">Diario</option>
-            <option value="semanal">Semanal</option>
-            <option value="mensual">Mensual</option>
-          </NativeSelect.Field>
-          <NativeSelect.Indicator />
-        </NativeSelect.Root>
-      </Flex>
+      {/* Para canciones y colecciones los datos siempre vienen mensuales, ocultamos el selector */}
+      {type !== "song" && type !== "collection" && (
+        <Flex justify="flex-end" mb={6}>
+          <NativeSelect.Root size="md" width="200px">
+            <NativeSelect.Field 
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value as "diario" | "semanal" | "mensual")}
+            >
+              <option value="diario">Diario</option>
+              <option value="semanal">Semanal</option>
+              <option value="mensual">Mensual</option>
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
+        </Flex>
+      )}
 
       {type === "song" ? (
-        <SongMetrics songId={id} timeframe={timeframe} />
+        <SongMetrics songId={id} timeframe={"mensual"} />
       ) : type === "collection" ? (
-        <CollectionMetrics collectionId={id} timeframe={timeframe} />
+        <CollectionMetrics collectionId={id} timeframe={"mensual"} />
       ) : (
         <Box>
           <Text fontSize="md" color="gray.700">

@@ -84,7 +84,7 @@ export function CatalogAuditTab({ id, type }: CatalogAuditTabProps) {
               <Table.ColumnHeader>Fecha y hora</Table.ColumnHeader>
               <Table.ColumnHeader>Motivo</Table.ColumnHeader>
               <Table.ColumnHeader>Cambios</Table.ColumnHeader>
-              <Table.ColumnHeader>Block ID</Table.ColumnHeader>
+              <Table.ColumnHeader>Admin Block ID</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>

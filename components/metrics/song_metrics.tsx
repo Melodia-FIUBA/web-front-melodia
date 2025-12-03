@@ -2,10 +2,7 @@
 
 import { Card, SimpleGrid, Stat, Box, Text, Flex, Icon, Heading } from "@chakra-ui/react";
 import { FaArrowUp, FaArrowDown, FaPlay, FaHeart, FaShare } from "react-icons/fa";
-import { Chart, useChart } from "@chakra-ui/charts";
-import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
-import { getISOWeek as getWeekLabel } from "./utils";
-import { getSongMetricsData, getSongPlaysOverTimeData } from "@/lib/metrics/catalog_metrics";
+import { getSongMetricsData } from "@/lib/metrics/catalog_metrics";
 
 interface SongMetricsProps {
   songId: string;
@@ -73,19 +70,11 @@ function KPICard({ label, icon, value, previousValue, formatValue }: KPICardProp
 
 export default function SongMetrics({ songId, timeframe = "mensual" }: SongMetricsProps) {
   const kpiData = getSongMetricsData(songId, timeframe);
-  const playsData = getSongPlaysOverTimeData(songId, timeframe);
-
-  const chart = useChart({
-    data: playsData,
-    series: [{ name: "plays", color: "teal.solid" }],
-  });
-
-  const xAxisKey: string = timeframe === "diario" ? "date" : timeframe === "semanal" ? "weekStart" : "month";
 
   return (
     <Box>
       <Heading size="lg" mb={4} color="white">
-        Métricas de la Canción
+        Métricas de la Canción - Último Mes
       </Heading>
 
       <SimpleGrid columns={{ base: 1, md: 3 }} gap={6} mb={8}>
@@ -108,52 +97,6 @@ export default function SongMetrics({ songId, timeframe = "mensual" }: SongMetri
           previousValue={kpiData.previousShares}
         />
       </SimpleGrid>
-
-      <Card.Root bg="gray.800" borderColor="gray.700" p={6}>
-        <Card.Body>
-          <Heading size="lg" color="white" mb={4}>
-            Reproducciones en el Tiempo
-          </Heading>
-        </Card.Body>
-
-        <Chart.Root maxH="sm" chart={chart}>
-          <LineChart data={chart.data}>
-            <CartesianGrid stroke={chart.color("border")} vertical={false} />
-            <XAxis
-              axisLine={false}
-              dataKey={chart.key(xAxisKey)}
-              tickFormatter={(value) => {
-                if (timeframe === "mensual") {
-                  return String(value);
-                }
-                const d = new Date(String(value));
-                return timeframe === "diario" 
-                  ? d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })
-                  : `${getWeekLabel(d)}`;
-              }}
-              stroke={chart.color("border")}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tickMargin={10}
-              stroke={chart.color("border")}
-            />
-            <Line
-              dataKey={chart.key("plays")}
-              fill={chart.color("teal.solid")}
-              stroke={chart.color("teal.solid")}
-              strokeWidth={2}
-              type="monotone"
-            />
-            <Tooltip
-              animationDuration={100}
-              cursor={false}
-              content={<Chart.Tooltip />}
-            />
-          </LineChart>
-        </Chart.Root>
-      </Card.Root>
 
       <Text fontSize="xs" color="gray.500" mt={4}>
         Última actualización: {kpiData.lastUpdate}
