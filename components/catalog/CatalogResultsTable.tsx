@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toaster } from "@/components/ui/toaster";
 import { CatalogDetails } from "@/lib/catalog/searchCatalog";
 import LoadBackgroundElement from "../ui/loadElements";
+import { getStatusLabel, getStatusPalette } from "@/lib/utils/effectiveStatus";
 import { editItemById } from "@/lib/catalog/editItem";
 import { blockItemGloballyById, unblockItemGloballyById } from "@/lib/catalog/blockItem";
 import { BlockItemDialog } from "./BlockItemDialog";
@@ -164,7 +165,7 @@ export function CatalogResultsTable({
                 <Table.ColumnHeader minW="150px">Artista Principal</Table.ColumnHeader>
                 <Table.ColumnHeader minW="150px">Colección</Table.ColumnHeader>
                 <Table.ColumnHeader minW="120px">Fecha de Publicacion</Table.ColumnHeader>
-                <Table.ColumnHeader minW="140px">Estado</Table.ColumnHeader>
+                <Table.ColumnHeader minW="140px">Estado Efectivo</Table.ColumnHeader>
                 <Table.ColumnHeader minW="120px" textAlign="center">Acciones</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
@@ -202,46 +203,26 @@ export function CatalogResultsTable({
                       : "-"}
                   </Table.Cell>
                   <Table.Cell>
-                    <Box
-                      as="span"
-                      px={2}
-                      py={1}
-                      borderRadius="md"
-                      fontSize="xs"
-                      fontWeight={500}
-                      bg={
-                        item.effectiveStatus === "published"
-                          ? "green.100"
-                          : item.effectiveStatus === "scheduled"
-                          ? "yellow.100"
-                          : item.effectiveStatus === "blocked_by_admin"
-                          ? "red.100"
-                          : item.effectiveStatus === "region_restricted"
-                          ? "orange.100"
-                          : "gray.100"
-                      }
-                      color={
-                        item.effectiveStatus === "published"
-                          ? "green.800"
-                          : item.effectiveStatus === "scheduled"
-                          ? "yellow.800"
-                          : item.effectiveStatus === "blocked_by_admin"
-                          ? "red.800"
-                          : item.effectiveStatus === "region_restricted"
-                          ? "orange.800"
-                          : "gray.800"
-                      }
-                    >
-                      {item.effectiveStatus === "scheduled"
-                        ? "Programado"
-                        : item.effectiveStatus === "published"
-                        ? "Publicado"
-                        : item.effectiveStatus === "region_restricted"
-                        ? "No disponible"
-                        : item.effectiveStatus === "blocked_by_admin"
-                        ? "Bloqueado"
-                        : item.effectiveStatus ?? "-"}
-                    </Box>
+                    {(() => {
+                      const status = item.effectiveStatus ?? "";
+                      const palette = getStatusPalette(status);
+                      const bg = `${palette}.100`;
+                      const color = `${palette}.800`;
+                      return (
+                        <Box
+                          as="span"
+                          px={2}
+                          py={1}
+                          borderRadius="md"
+                          fontSize="xs"
+                          fontWeight={500}
+                          bg={bg}
+                          color={color}
+                        >
+                          {getStatusLabel(status) || "-"}
+                        </Box>
+                      );
+                    })()}
                   </Table.Cell>
                   <Table.Cell textAlign="center">
                     <Menu.Root>

@@ -2,54 +2,28 @@ import { Box, Text } from "@chakra-ui/react";
 import WorldMap from "react-svg-worldmap";
 import { AvailabilityDetails } from "@/lib/catalog/availabilityDetails";
 import { countryNamesES } from "./utils";
+import { getStatusLabel, getMapColor } from "@/lib/utils/effectiveStatus";
 
 interface WorldAvailabilityMapProps {
   availability: AvailabilityDetails;
 }
 
 export function WorldAvailabilityMap({ availability }: WorldAvailabilityMapProps) {
-  // Helper function to get status label
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'Publicado';
-      case 'scheduled':
-        return 'Programado';
-      case 'region_restricted':
-        return 'No disponible en región';
-      case 'blocked_by_admin':
-        return 'Bloqueado por admin';
-      default:
-        return status;
-    }
-  };
-
   // Prepare data for the world map
   const mapData = availability.regions.map((region) => ({
     country: region.code.toLowerCase(),
     value: 1, // dummy value for display
   }));
 
-  // Map status to colors for the world map
-  const getMapColor = (countryCode: string) => {
+  // Map status to colors for the world map - obtiene color para un código de país
+  const getCountryMapColor = (countryCode: string) => {
     const region = availability.regions.find(
       (r) => r.code.toLowerCase() === countryCode.toLowerCase()
     );
     
     if (!region) return '#6b7280'; // gray for countries not in the list
     
-    switch (region.status) {
-      case 'published':
-        return '#10b981'; // green
-      case 'scheduled':
-        return '#fbbf24'; // yellow
-      case 'region_restricted':
-        return '#ef4444'; // red
-      case 'blocked_by_admin':
-        return '#7c2d12'; // bordó/dark red
-      default:
-        return '#6b7280'; // gray
-    }
+    return getMapColor(region.status);
   };
 
   return (
@@ -77,7 +51,7 @@ export function WorldAvailabilityMap({ availability }: WorldAvailabilityMapProps
             size="xxl"
             data={mapData}
             styleFunction={(context) => ({
-              fill: getMapColor(context.countryCode),
+              fill: getCountryMapColor(context.countryCode),
               stroke: '#1f2937',
               strokeWidth: 1,
               strokeOpacity: 0.5,
@@ -102,20 +76,20 @@ export function WorldAvailabilityMap({ availability }: WorldAvailabilityMapProps
         {/* Leyenda */}
         <Box mt={4} display="flex" flexWrap="wrap" gap={4} justifyContent="center">
           <Box display="flex" alignItems="center" gap={2}>
-            <Box w={4} h={4} bg="#10b981" borderRadius="sm" />
-            <Text fontSize="sm">Publicado</Text>
+            <Box w={4} h={4} bg={getMapColor('published')} borderRadius="sm" />
+            <Text fontSize="sm">{getStatusLabel('published')}</Text>
           </Box>
           <Box display="flex" alignItems="center" gap={2}>
-            <Box w={4} h={4} bg="#fbbf24" borderRadius="sm" />
-            <Text fontSize="sm">Programado</Text>
+            <Box w={4} h={4} bg={getMapColor('scheduled')} borderRadius="sm" />
+            <Text fontSize="sm">{getStatusLabel('scheduled')}</Text>
           </Box>
           <Box display="flex" alignItems="center" gap={2}>
-            <Box w={4} h={4} bg="#ef4444" borderRadius="sm" />
-            <Text fontSize="sm">No disponible en región</Text>
+            <Box w={4} h={4} bg={getMapColor('region_restricted')} borderRadius="sm" />
+            <Text fontSize="sm">{getStatusLabel('region_restricted')}</Text>
           </Box>
           <Box display="flex" alignItems="center" gap={2}>
-            <Box w={4} h={4} bg="#7c2d12" borderRadius="sm" />
-            <Text fontSize="sm">Bloqueado por admin</Text>
+            <Box w={4} h={4} bg={getMapColor('blocked_by_admin')} borderRadius="sm" />
+            <Text fontSize="sm">{getStatusLabel('blocked_by_admin')}</Text>
           </Box>
           <Box display="flex" alignItems="center" gap={2}>
             <Box w={4} h={4} bg="#6b7280" borderRadius="sm" />
