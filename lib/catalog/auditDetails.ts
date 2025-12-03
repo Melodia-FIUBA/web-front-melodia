@@ -8,23 +8,28 @@ import { AuditEvent } from '@/components/catalog/CatalogAuditTab';
 import { getUserById } from '../users/getUsers';
 import { countryNamesES } from '@/components/catalog/utils';
 
-const formatTimestamp = (timestamp: string) => {
+const formatTimestamp = (timestamp?: string | null) => {
+  if (!timestamp) return '-';
   const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return '-';
+  try {
+    const datePart = new Intl.DateTimeFormat('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
 
-  const datePart = new Intl.DateTimeFormat('es-AR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
+    const timePart = new Intl.DateTimeFormat('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    }).format(date);
 
-  const timePart = new Intl.DateTimeFormat('es-AR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  }).format(date);
-
-  return `${datePart}, ${timePart}`;
+    return `${datePart}, ${timePart}`;
+  } catch (e) {
+    return '-';
+  }
 };
 
 function getEventLabel(eventType: string): string {
@@ -92,7 +97,8 @@ function formatChanges(event: { event_type: string; changes: Record<string, unkn
   }
 
   if (event.event_type === 'published' && event.changes.release_date) {
-    return `Fecha de lanzamiento: ${event.changes.release_date}`;
+    const formatted = formatTimestamp(String(event.changes.release_date));
+    return `Fecha de lanzamiento: ${formatted}`;
   }
 
   return '-';
