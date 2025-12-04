@@ -10,7 +10,7 @@ export default function LoadBackgroundElement({size = "full"}: {size?: string}) 
     height = "xl";
     width = "full";
   }
-  else if (size == "users_profile" || size == "catalog_summary" || size == "catalog_detail_menu") {
+  else if (size == "users_profile" || size == "catalog_summary" || size == "catalog_detail_menu" || size == "userpanel") {
     height = "2xl";
     width = "full";
   }else if (size == "catalog_search" || size == "content_metrics") {

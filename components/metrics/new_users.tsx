@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Chart, useChart } from "@chakra-ui/charts";
@@ -11,16 +12,14 @@ import {
 } from "recharts";
 import { getISOWeek as getWeekLabel } from "./utils";
 import { Card, Heading } from "@chakra-ui/react";
-import { getNewUsersData } from "@/lib/metrics/users_metrics";
 
 interface NewUsersGraphProps {
   timeframe?: "diario" | "semanal" | "mensual";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data?: Array<any>;
 }
 
-export default function NewUsersGraph({ timeframe = "mensual" }: NewUsersGraphProps) {
-
-  const data = getNewUsersData(timeframe);
-
+export default function NewUsersGraph({ timeframe = "mensual", data = [] }: NewUsersGraphProps) {
   const chart = useChart({
     data,
     series: [{ name: "usuarios", color: "blue.solid" }],
