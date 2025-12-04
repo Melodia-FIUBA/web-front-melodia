@@ -18,9 +18,10 @@ import { toaster } from "@/components/ui/toaster";
 interface AvailabilityPolicyTabProps {
   id: string;
   type: string;
+  onLoaded?: () => void;
 }
 
-export function AvailabilityPolicyTab({ id, type }: AvailabilityPolicyTabProps) {
+export function AvailabilityPolicyTab({ id, type, onLoaded }: AvailabilityPolicyTabProps) {
   // Territory Policy states
   const [artistBlockedRegions, setArtistBlockedRegions] = useState<string[]>([]);
   const [selectedArtistBlockedRegions, setSelectedArtistBlockedRegions] = useState<string[]>([]);
@@ -73,8 +74,17 @@ export function AvailabilityPolicyTab({ id, type }: AvailabilityPolicyTabProps) 
   }, [id, type]);
 
   useEffect(() => {
-    void fetchPolicyData();
-  }, [fetchPolicyData]);
+    const init = async () => {
+      try {
+        await fetchPolicyData();
+      } catch (err) {
+        console.error("Error initializing AvailabilityPolicyTab:", err);
+      } finally {
+        onLoaded?.();
+      }
+    };
+    void init();
+  }, [fetchPolicyData, onLoaded]);
 
   // Handler for Territory Policy
   const handleEditTerritoryPolicy = async () => {

@@ -25,6 +25,10 @@ type RuntimeConfig = {
     UNBLOCK_SONGS_PATH: string;
     AUDIT_COLLECTIONS_PATH: string;
     AUDIT_SONGS_PATH: string;
+    ARTIST_METRICS_PATH: string;
+    USERS_METRICS_PATH: string;
+    SONG_METRICS_PATH: string;
+    COLLECTION_METRICS_PATH: string;
 };
 
 // Memo en módulo para no pegarle mil veces al endpoint
@@ -66,6 +70,10 @@ export function getRuntimeConfig(): Promise<RuntimeConfig> {
                     UNBLOCK_SONGS_PATH: "",
                     AUDIT_COLLECTIONS_PATH: "",
                     AUDIT_SONGS_PATH: "",
+                    ARTIST_METRICS_PATH: "",
+                    USERS_METRICS_PATH: "",
+                    SONG_METRICS_PATH: "",
+                    COLLECTION_METRICS_PATH: "",
                 };
             }
         })();

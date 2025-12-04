@@ -362,41 +362,53 @@ export function mockGetArtistKPI(timeframe: string) {
     return {
       monthlyListeners: 125000,
       previousMonthlyListeners: 118000,
-      followers: 45230,
-      previousFollowers: 44890,
       plays: 8543,
       previousPlays: 7821,
+      playsDelta: 722,
+      playsDeltaPercent: 9.2,
       saves: 324,
       previousSaves: 298,
+      savesDelta: 26,
+      savesDeltaPercent: 8.7,
       shares: 156,
       previousShares: 142,
+      sharesDelta: 14,
+      sharesDeltaPercent: 9.9,
     };
   } else if (timeframe === "semanal") {
     return {
       monthlyListeners: 125000,
       previousMonthlyListeners: 115000,
-      followers: 45230,
-      previousFollowers: 43100,
       plays: 52340,
       previousPlays: 48920,
+      playsDelta: 3420,
+      playsDeltaPercent: 7.0,
       saves: 2180,
       previousSaves: 1950,
+      savesDelta: 230,
+      savesDeltaPercent: 11.8,
       shares: 892,
       previousShares: 810,
+      sharesDelta: 82,
+      sharesDeltaPercent: 10.1,
     };
   } else {
     // mensual
     return {
       monthlyListeners: 125000,
       previousMonthlyListeners: 98000,
-      followers: 45230,
-      previousFollowers: 38500,
       plays: 215430,
       previousPlays: 187650,
+      playsDelta: 27780,
+      playsDeltaPercent: 14.8,
       saves: 9340,
       previousSaves: 7820,
+      savesDelta: 1520,
+      savesDeltaPercent: 19.4,
       shares: 3680,
       previousShares: 3120,
+      sharesDelta: 560,
+      sharesDeltaPercent: 18.0,
     };
   }
 }

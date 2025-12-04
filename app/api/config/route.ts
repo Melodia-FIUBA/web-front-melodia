@@ -39,6 +39,10 @@ export async function GET(request: Request) {
             UNBLOCK_SONGS_PATH: process.env.UNBLOCK_SONGS_PATH ?? "",
             AUDIT_COLLECTIONS_PATH: process.env.AUDIT_COLLECTIONS_PATH ?? "",
             AUDIT_SONGS_PATH: process.env.AUDIT_SONGS_PATH ?? "",
+            ARTIST_METRICS_PATH: process.env.ARTIST_METRICS_PATH ?? "",
+            USERS_METRICS_PATH: process.env.USERS_METRICS_PATH ?? "",
+            SONG_METRICS_PATH: process.env.SONG_METRICS_PATH ?? "",
+            COLLECTION_METRICS_PATH: process.env.COLLECTION_METRICS_PATH ?? "",
         };
     } else {
         payload = {

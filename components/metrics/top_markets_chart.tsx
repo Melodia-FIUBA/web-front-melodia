@@ -10,14 +10,13 @@ import {
   YAxis,
 } from "recharts";
 import { Card, Heading } from "@chakra-ui/react";
-import { getTopMarketsData } from "@/lib/metrics/artist_metrics";
 
 interface TopMarketsChartProps {
-  timeframe?: "diario" | "semanal" | "mensual";
+  data: Array<{ country: string; listeners: number }>;
 }
 
-export default function TopMarketsChart({ timeframe = "mensual" }: TopMarketsChartProps) {
-  const data = getTopMarketsData(timeframe);
+export default function TopMarketsChart({ data }: TopMarketsChartProps) {
+  // Data already in correct format from artist_metrics.ts
 
   const chart = useChart({
     data,

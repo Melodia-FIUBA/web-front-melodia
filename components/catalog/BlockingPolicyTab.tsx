@@ -25,9 +25,10 @@ import { getItemById } from "@/lib/catalog/summaryDetails";
 interface BlockingPolicyTabProps {
   id: string;
   type: string;
+  onLoaded?: () => void;
 }
 
-export function BlockingPolicyTab({ id, type }: BlockingPolicyTabProps) {
+export function BlockingPolicyTab({ id, type, onLoaded }: BlockingPolicyTabProps) {
   const [loading, setLoading] = useState(true);
   const [activeBlocks, setActiveBlocks] = useState<ActiveBlockDisplay[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
@@ -102,9 +103,17 @@ export function BlockingPolicyTab({ id, type }: BlockingPolicyTabProps) {
   }, [id, type]);
 
   useEffect(() => {
-    void fetchActiveBlocks();
-    void fetchItemStatus();
-  }, [fetchActiveBlocks, fetchItemStatus]);
+    const init = async () => {
+      try {
+        await Promise.all([fetchActiveBlocks(), fetchItemStatus()]);
+      } catch (err) {
+        console.error("Error initializing BlockingPolicyTab:", err);
+      } finally {
+        onLoaded?.();
+      }
+    };
+    void init();
+  }, [fetchActiveBlocks, fetchItemStatus, onLoaded]);
 
   const availableRegions = Object.entries(countryNamesES)
     .map(([code, name]) => ({

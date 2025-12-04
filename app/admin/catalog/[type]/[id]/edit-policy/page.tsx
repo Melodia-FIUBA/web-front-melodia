@@ -4,15 +4,18 @@ import {
   Box,
   Heading,
   Button,
-  HStack, 
+  HStack,
   Tabs,
+  Spinner,
+  Text,
 } from "@chakra-ui/react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 import { FaArrowLeft } from "react-icons/fa";
 import { BlockingPolicyTab } from "@/components/catalog/BlockingPolicyTab";
 import { AvailabilityPolicyTab } from "@/components/catalog/AvailabilityPolicyTab";
+import LoadBackgroundElement from "@/components/ui/loadElements";
 
 export default function EditPolicyPage() {
   const router = useRouter();
@@ -25,6 +28,9 @@ export default function EditPolicyPage() {
       router.push("/login");
     }
   }, [router]);
+  const [blockingLoaded, setBlockingLoaded] = useState(false);
+
+  const initialLoaded = blockingLoaded; // only wait for the default (blocking) tab to finish
 
   if (!isAdminLoggedIn()) {
     return null;
@@ -46,21 +52,33 @@ export default function EditPolicyPage() {
           </Box>
         </Button>
       </HStack>
+      {!initialLoaded && (
+        <Box p={6} borderRadius="lg" textAlign="center" py={8} mb={6}>
+          <Spinner />
+          <Text mt={2} color="gray.600">
+            Cargando políticas del contenido...
+          </Text>
+          <LoadBackgroundElement size="users_menu"></LoadBackgroundElement>
+        </Box>
+      )}
+      
 
-      <Tabs.Root defaultValue="blocking" variant="enclosed">
+      <Box display={initialLoaded ? "block" : "none"}>
+        <Tabs.Root defaultValue="blocking" variant="enclosed">
         <Tabs.List>
           <Tabs.Trigger value="blocking">Bloqueo y Desbloqueo con Alcance</Tabs.Trigger>
           <Tabs.Trigger value="availability">Disponibilidad por Región y Ventana</Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="blocking" p={4}>
-          <BlockingPolicyTab id={id} type={type} />
+          <BlockingPolicyTab id={id} type={type} onLoaded={() => setBlockingLoaded(true)} />
         </Tabs.Content>
 
         <Tabs.Content value="availability" p={4}>
           <AvailabilityPolicyTab id={id} type={type} />
         </Tabs.Content>
-      </Tabs.Root>
+        </Tabs.Root>
+      </Box>
     </Box>
   );
 }
