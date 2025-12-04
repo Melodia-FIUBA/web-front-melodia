@@ -1,11 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { getRuntimeConfig } from "@/lib/config/envs";
 import { adminLoginData } from "@/lib/log/cookies";
-import {
-  mockGetSongPlaysOverTime,
-  mockGetCollectionPlaysOverTime,
-} from "./mock";
 
 interface SongMetricsResponse {
   song_id: number;
@@ -130,30 +124,4 @@ export async function getCollectionMetricsData(collectionId: string): Promise<Co
     shares: data.metrics.share_count ?? 0,
     lastUpdate: formatTimestamp(data.generated_at),
   };
-}
-
-/**
- * Obtiene el historial de reproducciones de una canción
- * En el futuro, esta función llamará a una API real
- * Por ahora, utiliza datos mock
- */
-export function getSongPlaysOverTimeData(songId: string, timeframe: string): Array<any> {
-  // TODO: Reemplazar con llamada a API real
-  // const response = await fetch(`/api/catalog/songs/${songId}/plays-history?timeframe=${timeframe}`);
-  // return await response.json();
-  
-  return mockGetSongPlaysOverTime(songId, timeframe);
-}
-
-/**
- * Obtiene el historial de reproducciones de una colección/álbum
- * En el futuro, esta función llamará a una API real
- * Por ahora, utiliza datos mock
- */
-export function getCollectionPlaysOverTimeData(collectionId: string, timeframe: string): Array<any> {
-  // TODO: Reemplazar con llamada a API real
-  // const response = await fetch(`/api/catalog/collections/${collectionId}/plays-history?timeframe=${timeframe}`);
-  // return await response.json();
-  
-  return mockGetCollectionPlaysOverTime(collectionId, timeframe);
 }

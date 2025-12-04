@@ -2,11 +2,6 @@
 
 import { getRuntimeConfig } from "@/lib/config/envs";
 import { adminLoginData } from "@/lib/log/cookies";
-import {
-  mockGetActiveUsers,
-  mockGetNewUsers,
-  mockGetUserRetention,
-} from "./mock";
 
 type UsersMetricsTimeframe = "diario" | "semanal" | "mensual";
 type UsersMetricsPeriod = "daily" | "weekly" | "monthly";
@@ -147,32 +142,23 @@ async function getUsersMetrics(timeframe: UsersMetricsTimeframe): Promise<UsersM
 /**
  * Obtiene datos de usuarios activos desde la API real (fallback al mock ante errores)
  */
-export async function getActiveUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any>> {
+export async function getActiveUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any> | undefined> {
   try {
     const metrics = await getUsersMetrics(timeframe);
     return transformEntries(metrics.users_logged_in ?? [], timeframe);
   } catch (error) {
     console.error("Error obteniendo métricas de usuarios activos", error);
-    return mockGetActiveUsers(timeframe);
   }
 }
 
 /**
  * Obtiene datos de nuevos usuarios registrados desde la API real (fallback al mock ante errores)
  */
-export async function getNewUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any>> {
+export async function getNewUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any> | undefined> {
   try {
     const metrics = await getUsersMetrics(timeframe);
     return transformEntries(metrics.registered_users ?? [], timeframe);
   } catch (error) {
     console.error("Error obteniendo métricas de nuevos usuarios", error);
-    return mockGetNewUsers(timeframe);
   }
-}
-
-/**
- * Mantiene el mock de retención hasta contar con un endpoint dedicado
- */
-export function getUserRetentionData(timeframe: string): Array<any> {
-  return mockGetUserRetention(timeframe);
 }
