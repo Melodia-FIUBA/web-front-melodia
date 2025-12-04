@@ -187,7 +187,7 @@ export default function PanelArtistPage() {
       <Box p={6} borderRadius="lg" textAlign="center" py={8}>
         <Spinner />
         <Text mt={2} color="gray.600">
-          Cargando políticas del contenido...
+          Cargando Panel de Métricas del Artista...
         </Text>
         <LoadBackgroundElement size="users_menu"></LoadBackgroundElement>
       </Box>
