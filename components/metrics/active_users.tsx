@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { Chart, useChart } from "@chakra-ui/charts";
@@ -15,7 +15,6 @@ import { Card, Heading } from "@chakra-ui/react";
 
 interface ActiveUsersGraphProps {
   timeframe?: "diario" | "semanal" | "mensual";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: Array<any>;
 }
 

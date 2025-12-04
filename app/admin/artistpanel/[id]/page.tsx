@@ -105,11 +105,8 @@ export default function PanelArtistPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [kpiData, setKpiData] = useState<KPIData | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topSongs, setTopSongs] = useState<Array<any>>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topMarkets, setTopMarkets] = useState<Array<any>>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topPlaylists, setTopPlaylists] = useState<Array<any>>([]);
 
   useEffect(() => {

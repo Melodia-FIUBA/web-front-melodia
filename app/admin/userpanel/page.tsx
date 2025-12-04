@@ -15,9 +15,7 @@ export default function PanelUsuarioPage() {
   const router = useRouter();
   const [timeframe, setTimeframe] = useState<"diario" | "semanal" | "mensual">("mensual");
   const [isExporting, setIsExporting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activeUsersData, setActiveUsersData] = useState<Array<any>>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [newUsersData, setNewUsersData] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);

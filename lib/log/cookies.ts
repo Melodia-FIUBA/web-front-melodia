@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 export function saveUserDataToLocalStorage(token: string, refreshToken: string, user: any) {

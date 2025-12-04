@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 import { getRuntimeConfig } from "@/lib/config/envs";
 import { adminLoginData } from "@/lib/log/cookies";

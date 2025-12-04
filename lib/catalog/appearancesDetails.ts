@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // Type definitions for appearances data
 export type CollectionAppearance = {
     id: string;

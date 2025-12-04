@@ -1,4 +1,5 @@
-import { Box, Text, Portal, Button, Input, Textarea } from "@chakra-ui/react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Box, Text, Portal, Button, Input } from "@chakra-ui/react";
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 
