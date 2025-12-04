@@ -142,23 +142,25 @@ async function getUsersMetrics(timeframe: UsersMetricsTimeframe): Promise<UsersM
 /**
  * Obtiene datos de usuarios activos desde la API real (fallback al mock ante errores)
  */
-export async function getActiveUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any> | undefined> {
+export async function getActiveUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any>> {
   try {
     const metrics = await getUsersMetrics(timeframe);
     return transformEntries(metrics.users_logged_in ?? [], timeframe);
   } catch (error) {
     console.error("Error obteniendo métricas de usuarios activos", error);
+    return [];
   }
 }
 
 /**
  * Obtiene datos de nuevos usuarios registrados desde la API real (fallback al mock ante errores)
  */
-export async function getNewUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any> | undefined> {
+export async function getNewUsersData(timeframe: UsersMetricsTimeframe): Promise<Array<any>> {
   try {
     const metrics = await getUsersMetrics(timeframe);
     return transformEntries(metrics.registered_users ?? [], timeframe);
   } catch (error) {
     console.error("Error obteniendo métricas de nuevos usuarios", error);
+    return [];
   }
 }
