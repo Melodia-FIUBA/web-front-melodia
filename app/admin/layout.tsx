@@ -36,7 +36,7 @@ export default function AdminLayout({
           <Flex gap={6} ml={6} align="center">
             <Link href="/admin/catalog">Catálogo</Link>
             <Link href="/admin/users">Usuarios</Link>
-            <Link href="/admin/userpanel">Panel Usuario</Link>
+            <Link href="/admin/userpanel">Panel Metricas de Usuario</Link>
           </Flex>
 
           <IconButton ml="auto" onClick={() => logout()}>
