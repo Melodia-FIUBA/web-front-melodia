@@ -43,9 +43,9 @@ export function CatalogMetricsTab({ id, type }: CatalogMetricsTabProps) {
       )}
 
       {type === "song" ? (
-        <SongMetrics songId={id} timeframe={"mensual"} />
+        <SongMetrics songId={id} />
       ) : type === "collection" ? (
-        <CollectionMetrics collectionId={id} timeframe={"mensual"} />
+        <CollectionMetrics collectionId={id} />
       ) : (
         <Box>
           <Text fontSize="md" color="gray.700">

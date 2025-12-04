@@ -1,83 +1,134 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { getRuntimeConfig } from "@/lib/config/envs";
+import { adminLoginData } from "@/lib/log/cookies";
 import {
-  mockGetSongMetrics,
-  mockGetCollectionMetrics,
   mockGetSongPlaysOverTime,
   mockGetCollectionPlaysOverTime,
 } from "./mock";
 
+interface SongMetricsResponse {
+  song_id: number;
+  generated_at: string;
+  metrics: {
+    play_count: number | null;
+    like_count: number | null;
+    share_count: number | null;
+  };
+}
+
+interface CollectionMetricsResponse {
+  collection_id: number;
+  generated_at: string;
+  metrics: {
+    total_plays: number | null;
+    like_count: number | null;
+    share_count: number | null;
+  };
+}
+
 interface SongMetricsData {
   plays: number;
-  previousPlays: number;
   likes: number;
-  previousLikes: number;
   shares: number;
-  previousShares: number;
   lastUpdate: string;
 }
 
 interface CollectionMetricsData {
   totalPlays: number;
-  previousTotalPlays: number;
   likes: number;
-  previousLikes: number;
   shares: number;
-  previousShares: number;
   lastUpdate: string;
 }
 
-/**
- * Obtiene las métricas de una canción
- * En el futuro, esta función llamará a una API real
- * Por ahora, utiliza datos mock
- */
-export function getSongMetricsData(songId: string, timeframe: string): SongMetricsData {
-  const now = new Date();
-  const lastUpdate = now.toLocaleString("es-ES", {
+function formatTimestamp(timestamp?: string): string {
+  const date = timestamp ? new Date(timestamp) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toLocaleString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  return date.toLocaleString("es-ES", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+}
 
-  // TODO: Reemplazar con llamada a API real
-  // const response = await fetch(`/api/catalog/songs/${songId}/metrics?timeframe=${timeframe}`);
-  // const data = await response.json();
-  
-  const mockData = mockGetSongMetrics(songId, timeframe);
+/**
+ * Obtiene las métricas de una canción
+ */
+export async function getSongMetricsData(songId: string): Promise<SongMetricsData> {
+  const cfg = await getRuntimeConfig();
+  const [token] = adminLoginData();
+
+  const url = new URL(
+    cfg.SONG_METRICS_PATH.replace(":id", songId),
+    cfg.MELODIA_SONGS_BACKOFFICE_API_URL
+  );
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching song metrics (${response.status})`);
+  }
+
+  const data = (await response.json()) as SongMetricsResponse;
 
   return {
-    ...mockData,
-    lastUpdate,
+    plays: data.metrics.play_count ?? 0,
+    likes: data.metrics.like_count ?? 0,
+    shares: data.metrics.share_count ?? 0,
+    lastUpdate: formatTimestamp(data.generated_at),
   };
 }
 
 /**
  * Obtiene las métricas de una colección/álbum
- * En el futuro, esta función llamará a una API real
- * Por ahora, utiliza datos mock
  */
-export function getCollectionMetricsData(collectionId: string, timeframe: string): CollectionMetricsData {
-  const now = new Date();
-  const lastUpdate = now.toLocaleString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+export async function getCollectionMetricsData(collectionId: string): Promise<CollectionMetricsData> {
+  const cfg = await getRuntimeConfig();
+  const [token] = adminLoginData();
+
+  const url = new URL(
+    cfg.COLLECTION_METRICS_PATH.replace(":id", collectionId),
+    cfg.MELODIA_SONGS_BACKOFFICE_API_URL
+  );
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
   });
 
-  // TODO: Reemplazar con llamada a API real
-  // const response = await fetch(`/api/catalog/collections/${collectionId}/metrics?timeframe=${timeframe}`);
-  // const data = await response.json();
-  
-  const mockData = mockGetCollectionMetrics(collectionId, timeframe);
+  if (!response.ok) {
+    throw new Error(`Error fetching collection metrics (${response.status})`);
+  }
+
+  const data = (await response.json()) as CollectionMetricsResponse;
 
   return {
-    ...mockData,
-    lastUpdate,
+    totalPlays: data.metrics.total_plays ?? 0,
+    likes: data.metrics.like_count ?? 0,
+    shares: data.metrics.share_count ?? 0,
+    lastUpdate: formatTimestamp(data.generated_at),
   };
 }
 
