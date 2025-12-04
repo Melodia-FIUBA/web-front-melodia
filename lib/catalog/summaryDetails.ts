@@ -2,6 +2,7 @@
 import { getRuntimeConfig } from "../config/envs";
 import { getToken } from "../log/cookies";
 import { getUserById } from "../users/getUsers";
+import { calculateEffectiveStatus } from "../utils/effectiveStatus";
 import { CatalogDetails } from "./searchCatalog";
 
 
@@ -22,7 +23,7 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
     try {
         const cfg = await getRuntimeConfig();
 
-        const collection_url = new URL(cfg.CRUD_ID_COLLECTIONS_PATH.replace(":id", collectionId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        const collection_url = new URL(cfg.CRUD_ID_COLLECTIONS_PATH.replace(":id", collectionId)+`?include_availability_details=true`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 
@@ -43,7 +44,6 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
 
             const userBody = await getUserById(body.created_by_user_id);
 
-            const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(body.id, "collection");
 
             const item: CatalogDetails = {
                 id: body.id ?? "",
@@ -64,9 +64,10 @@ export async function getCollectionDetailsById(collectionId: string): Promise<Ca
                     duration: song.duration ?? null,
                 })),
                 publishedAt: body.release_date ?? null,
-                effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : (body.computed_status ?? 'published'),
-                backendEffectiveStatus: body.computed_status ?? 'published',
+                effectiveStatus: calculateEffectiveStatus(body.status_info, "collection"),
                 coverUrl: body.cover_url ?? null,
+                statusInfo: body.status_info ?? null,
+                artist_blocked_regions: body.artist_blocked_regions ?? undefined,
             }
             return item;
         } else {
@@ -121,8 +122,9 @@ export async function getPlaylistDetailsById(playlistId: string): Promise<Catalo
                     duration: song.duration ?? null,
                 })),
                 publishedAt: body.created_at ?? null,
-                effectiveStatus: body.is_public === true ? "published" : "scheduled",
+                effectiveStatus: calculateEffectiveStatus(body.status_info, "playlist", body.is_public),
                 coverUrl: body.cover_url ?? null,
+                artist_blocked_regions: body.artist_blocked_regions ?? undefined,
             }
             return item;
         } else {
@@ -137,7 +139,7 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
     try {
         const cfg = await getRuntimeConfig();
 
-        const collection_url = new URL(cfg.CRUD_ID_SONGS_PATH.replace(":id", songId), cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        const collection_url = new URL(cfg.CRUD_ID_SONGS_PATH.replace(":id", songId)+`?include_availability_details=true`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 
@@ -159,8 +161,6 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
             const userBody = await getUserById(body.owner_id);
             const collBody = await getCollectionDetailsById(body.collection_id);
 
-            const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(body.id, "song");
-
 
             const item: CatalogDetails = {
                 id: body.id ?? "",
@@ -168,7 +168,7 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
                 title: body.title,
                 artists: userBody?.username ? [userBody.username] : ["Anónimo"],
                 collection: { id: body.collection_id, title: collBody?.title ?? "" },
-                trackNumber: 1, //TODO URGENTE: DE DONDE SACO ESTO?
+                trackNumber: 1,
                 duration: body.duration,
                 video: false,
                 typeLabel: undefined,
@@ -176,9 +176,11 @@ export async function getSongDetailsById(songId: string): Promise<CatalogDetails
                 owner: null,
                 songs: undefined,
                 publishedAt: body.created_at ?? null,
-                effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : collBody?.effectiveStatus,
-                backendEffectiveStatus: collBody?.backendEffectiveStatus,
+                effectiveStatus: calculateEffectiveStatus(body.status_info, "song"),
+                statusInfo: body.status_info ?? null,
+                artist_blocked_regions: body.artist_blocked_regions ?? undefined,
             }
+            console.log("BODY SONG", body);
             return item;
         } else {
             return null;

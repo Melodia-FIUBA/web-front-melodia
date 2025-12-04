@@ -37,6 +37,12 @@ export async function GET(request: Request) {
             GET_BLOCKED_SONGS_HISTORY_PATH: process.env.GET_BLOCKED_SONGS_HISTORY_PATH ?? "",
             GET_SONGS_REASON_CODES_PATH: process.env.GET_SONGS_REASON_CODES_PATH ?? "",
             UNBLOCK_SONGS_PATH: process.env.UNBLOCK_SONGS_PATH ?? "",
+            AUDIT_COLLECTIONS_PATH: process.env.AUDIT_COLLECTIONS_PATH ?? "",
+            AUDIT_SONGS_PATH: process.env.AUDIT_SONGS_PATH ?? "",
+            ARTIST_METRICS_PATH: process.env.ARTIST_METRICS_PATH ?? "",
+            USERS_METRICS_PATH: process.env.USERS_METRICS_PATH ?? "",
+            SONG_METRICS_PATH: process.env.SONG_METRICS_PATH ?? "",
+            COLLECTION_METRICS_PATH: process.env.COLLECTION_METRICS_PATH ?? "",
         };
     } else {
         payload = {

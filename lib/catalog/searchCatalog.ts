@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prefer-const */
 
 import { getRuntimeConfig } from '../config/envs';
 import { getToken } from '../log/cookies';
 import { getUserById } from '../users/getUsers';
+import { calculateEffectiveStatus } from '../utils/effectiveStatus';
 import { SONGS_AND_OTHER_ITEMS_MOCK } from './mock';
-import { getCollectionDetailsById, getIfEffectiveStatusBlocked } from './summaryDetails';
+import { getCollectionDetailsById } from './summaryDetails';
 export { SONGS_AND_OTHER_ITEMS_MOCK };
 
 export function validateDateRange(publishedFrom?: string, publishedTo?: string) {
@@ -64,12 +66,8 @@ export type CatalogDetails = {
     | 'blocked_by_admin'
     | string;
     // Effective status as returned by the backend
-    backendEffectiveStatus?:
-    | 'scheduled'
-    | 'published'
-    | 'region_restricted'
-    | 'blocked_by_admin'
-    | string;
+    statusInfo?: any,
+    artist_blocked_regions?: string[];
     coverUrl?: string;
 };
 
@@ -115,7 +113,7 @@ export async function getCatalogResults(
             offset: filters.offset ?? '0',
         });
 
-        const search_songs_url = new URL(`${cfg.SEARCH_SONGS_PATH}${payload}`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
+        const search_songs_url = new URL(`${cfg.SEARCH_SONGS_PATH}${payload}&include_availability_details=true`, cfg.MELODIA_SONGS_BACKOFFICE_API_URL);
 
         const token = getToken();
 
@@ -140,7 +138,6 @@ export async function getCatalogResults(
                 if (item?.type === 'song') {
 
                     let collBody = await getCollectionDetailsById(item.collection_id);
-                    const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(item.id, "song");
                     let userBody = await getUserById(item.owner_id);
 
                     console.log("COLLECTION BODY IN SEARCH", collBody);
@@ -160,13 +157,12 @@ export async function getCatalogResults(
                         owner: null,
                         songs: undefined,
                         publishedAt: item.created_at ?? null,
-                        effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : collBody?.effectiveStatus,
+                        effectiveStatus: calculateEffectiveStatus(item.status_info, "song"),
                     });
                 } else if (item?.type === 'collection') {
 
 
                     let userBody = await getUserById(item.created_by_user_id);
-                    const [isRegionalBlocked, isGloballyBlocked] = await getIfEffectiveStatusBlocked(item.id, "collection");
 
                     items.push({
                         id: item.id ?? "",
@@ -182,7 +178,7 @@ export async function getCatalogResults(
                         owner: null,
                         songs: [],
                         publishedAt: item.created_at ?? null,
-                        effectiveStatus: isGloballyBlocked ? "blocked_by_admin" : isRegionalBlocked ? "region_restricted" : (item.computed_status ?? 'published'),
+                        effectiveStatus: calculateEffectiveStatus(item.status_info, "collection"),
                     });
                 } else if (item?.type === 'playlist') {
 
@@ -202,14 +198,14 @@ export async function getCatalogResults(
                         owner: null,
                         songs: [],
                         publishedAt: item.created_at ?? null,
-                        effectiveStatus: item.is_public === true ? "published" : "scheduled", 
+                        effectiveStatus: calculateEffectiveStatus(item.status_info, "playlist", item.is_public),
                     });
                 }
             }
             console.log("ITEMS SEARCH CATALOG", items);
             const total = items.length; 
 
-
+            //Quito cosas si quedaron mal su status
             items = items.filter((item) => item.effectiveStatus === filters.selectedStatus || !filters.selectedStatus);
             return [items, total];
         } else {

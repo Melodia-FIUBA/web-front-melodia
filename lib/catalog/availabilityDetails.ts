@@ -19,7 +19,76 @@ export type AvailabilityDetails = {
 };
 
 
+
 export async function getAvailabilityById(id: string, type: string): Promise<AvailabilityDetails | null> {
+
+
+  let availability_details: AvailabilityDetails | null = null;
+  let regions_availability: RegionAvailability[] = [];
+
+  try {
+    const item = await getItemById(id, type);
+
+    if (type === 'song' || type === 'collection') {
+      if (item?.statusInfo.published) {
+        regions_availability = getAllRegionsSameState('published');
+      } else {
+        regions_availability = getAllRegionsSameState('scheduled');
+      }
+      
+      // Process blocked_by_artist first (region_restricted has lower priority)
+      if (item?.statusInfo.blocked_by_artist && Array.isArray(item.statusInfo.blocked_by_artist)) {
+        if (item.statusInfo.blocked_by_artist.includes('GLOBAL')) {
+          regions_availability = getAllRegionsSameState('region_restricted');
+        } else {
+          regions_availability = regions_availability.map((region) => {
+            if (item.statusInfo.blocked_by_artist.includes(region.code)) {
+              return { ...region, status: 'region_restricted' as const };
+            }
+            return region;
+          });
+        }
+      }
+      
+      // Process admin_blocks (blocked_by_admin has higher priority)
+      if (item?.statusInfo.admin_blocks && Array.isArray(item.statusInfo.admin_blocks)) {
+        for (const block of item.statusInfo.admin_blocks) {
+          if (block.regions && Array.isArray(block.regions)) {
+            if (block.regions.includes('GLOBAL')) {
+              regions_availability = getAllRegionsSameState('blocked_by_admin');
+              break;
+            } else {
+              regions_availability = regions_availability.map((region) => {
+                if (block.regions.includes(region.code)) {
+                  return { ...region, status: 'blocked_by_admin' as const };
+                }
+                return region;
+              });
+            }
+          }
+        }
+      }
+    } else { //if (type === 'playlist')
+      regions_availability = getAllRegionsSameState(item?.effectiveStatus as ('published' | 'scheduled' | 'region_restricted' | 'blocked_by_admin') || 'published');
+
+    }
+
+    availability_details = {
+      effectiveStatus: item?.effectiveStatus as ('published' | 'scheduled' | 'region_restricted' | 'blocked_by_admin') || 'published',
+      scheduledAt: item?.publishedAt || null,
+      regions: regions_availability,
+    };
+
+  } catch (error) {
+    console.error("Error fetching availability details:", error);
+    return null;
+  }
+
+  return availability_details;
+}
+
+
+export async function getAvailabilityById2(id: string, type: string): Promise<AvailabilityDetails | null> {
 
 
   const item = await getItemById(id, type);
@@ -29,12 +98,6 @@ export async function getAvailabilityById(id: string, type: string): Promise<Ava
 
   console.log("Item fetched for availability:", item);
 
-  if (item?.backendEffectiveStatus === 'scheduled') {
-    regions_availability = getAllRegionsSameState("scheduled");
-  } else {
-    regions_availability = getAllRegionsSameState("published");
-  }
-  
   try {
     const token = getToken();
     const headers: Record<string, string> = { "Content-Type": "application/json" };

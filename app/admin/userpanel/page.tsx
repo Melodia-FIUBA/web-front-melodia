@@ -4,7 +4,7 @@ import ActiveUsersGraph from "@/components/metrics/active_users";
 import NewUsersGraph from "@/components/metrics/new_users";
 import UserRetentionGraph from "@/components/metrics/user_retention";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
-import { Box, Flex, Heading, Text, NativeSelect, Button } from "@chakra-ui/react";
+import { Box, Flex, Heading, NativeSelect, Button } from "@chakra-ui/react";
 import { FaFileExcel } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

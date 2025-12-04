@@ -1,22 +1,164 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { getRuntimeConfig } from "@/lib/config/envs";
+import { adminLoginData } from "@/lib/log/cookies";
+
+// Estructura que esperan los componentes (compatible con mock)
 interface KPIData {
   monthlyListeners: number;
-  previousMonthlyListeners: number;
-  followers: number;
-  previousFollowers: number;
+  previousMonthlyListeners: number | null;
   plays: number;
-  previousPlays: number;
+  previousPlays: number | null;
+  playsDelta: number | null;
+  playsDeltaPercent: number | null;
   saves: number;
-  previousSaves: number;
+  previousSaves: number | null;
+  savesDelta: number | null;
+  savesDeltaPercent: number | null;
   shares: number;
-  previousShares: number;
+  previousShares: number | null;
+  sharesDelta: number | null;
+  sharesDeltaPercent: number | null;
   lastUpdate: string;
 }
 
-export function getArtistKPIData(timeframe: string): KPIData {
-  const now = new Date();
-  const lastUpdate = now.toLocaleString("es-ES", {
+// Estructura de la API real
+interface APITopSong {
+  song_id: number;
+  title: string;
+  collection_id: number;
+  cover_url: string | null;
+  period_plays: number;
+  total_plays: number;
+  total_likes: number;
+}
+
+interface APITopMarket {
+  region: string;
+  plays: number;
+}
+
+interface APITopPlaylist {
+  playlist_id: number;
+  name: string;
+  owner_id: string;
+  artist_song_count: number;
+  total_songs: number;
+  like_count: number;
+  cover_url: string | null;
+}
+
+interface ArtistMetricsResponse {
+  artist_id: string;
+  period: string;
+  generated_at: string;
+  region_filter: string | null;
+  kpis: {
+    monthly_listeners: {
+      count: number;
+      period: {
+        start: string;
+        end: string;
+      };
+    };
+    plays: {
+      current: number;
+      previous: number;
+      delta: number;
+      delta_percent: number;
+      period: {
+        current: { start: string; end: string };
+        previous: { start: string; end: string };
+      };
+    };
+    likes: {
+      current: number;
+      previous: number;
+      delta: number;
+      delta_percent: number;
+      period: {
+        current: { start: string; end: string };
+        previous: { start: string; end: string };
+      };
+    };
+    shares: {
+      current: number | null;
+      previous: number | null;
+      delta: number | null;
+      delta_percent: number | null;
+      period: {
+        current: { start: string; end: string };
+        previous: { start: string; end: string };
+      };
+    };
+  };
+  breakdowns: {
+    top_songs: APITopSong[];
+    top_markets: APITopMarket[];
+    top_playlists: APITopPlaylist[];
+  };
+}
+
+/**
+ * Mapea el timeframe del frontend al período de la API
+ */
+function mapTimeframeToPeriod(timeframe: string): string {
+  const mapping: Record<string, string> = {
+    diario: "daily",
+    semanal: "weekly",
+    mensual: "monthly",
+  };
+  return mapping[timeframe] || "monthly";
+}
+
+/**
+ * Obtiene las métricas completas del artista desde la API
+ */
+export async function getArtistMetrics(
+  artistId: string,
+  timeframe: string,
+  region?: string
+): Promise<ArtistMetricsResponse> {
+  const cfg = await getRuntimeConfig();
+  const [token] = adminLoginData();
+  const period = mapTimeframeToPeriod(timeframe);
+  
+  const url = new URL(
+    cfg.ARTIST_METRICS_PATH.replace(":id", artistId),
+    cfg.MELODIA_SONGS_BACKOFFICE_API_URL
+  );
+  url.searchParams.append("period", period);
+  if (region) {
+    url.searchParams.append("region", region);
+  }
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching artist metrics: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Obtiene los KPIs del artista
+ * Transforma la respuesta de la API al formato esperado por los componentes
+ */
+export async function getArtistKPIData(
+  artistId: string,
+  timeframe: string,
+  region?: string
+): Promise<KPIData> {
+  const data = await getArtistMetrics(artistId, timeframe, region);
+  
+  const lastUpdate = new Date(data.generated_at).toLocaleString("es-ES", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -24,156 +166,81 @@ export function getArtistKPIData(timeframe: string): KPIData {
     minute: "2-digit",
   });
 
-  if (timeframe === "diario") {
-    return {
-      monthlyListeners: 125000,
-      previousMonthlyListeners: 118000,
-      followers: 45230,
-      previousFollowers: 44890,
-      plays: 8543,
-      previousPlays: 7821,
-      saves: 324,
-      previousSaves: 298,
-      shares: 156,
-      previousShares: 142,
-      lastUpdate,
-    };
-  } else if (timeframe === "semanal") {
-    return {
-      monthlyListeners: 125000,
-      previousMonthlyListeners: 115000,
-      followers: 45230,
-      previousFollowers: 43100,
-      plays: 52340,
-      previousPlays: 48920,
-      saves: 2180,
-      previousSaves: 1950,
-      shares: 892,
-      previousShares: 810,
-      lastUpdate,
-    };
-  } else {
-    // mensual
-    return {
-      monthlyListeners: 125000,
-      previousMonthlyListeners: 98000,
-      followers: 45230,
-      previousFollowers: 38500,
-      plays: 215430,
-      previousPlays: 187650,
-      saves: 9340,
-      previousSaves: 7820,
-      shares: 3680,
-      previousShares: 3120,
-      lastUpdate,
-    };
-  }
+  const plays = data.kpis.plays;
+  const likes = data.kpis.likes;
+  const shares = data.kpis.shares;
+
+  return {
+    monthlyListeners: data.kpis.monthly_listeners.count,
+    previousMonthlyListeners: null, // La API no provee este dato
+    plays: plays.current,
+    previousPlays: plays.previous ?? null,
+    playsDelta: plays.delta ?? null,
+    playsDeltaPercent: plays.delta_percent ?? null,
+    saves: likes.current, // La API usa "likes" como "saves"
+    previousSaves: likes.previous ?? null,
+    savesDelta: likes.delta ?? null,
+    savesDeltaPercent: likes.delta_percent ?? null,
+    shares: shares?.current ?? 0,
+    previousShares: shares?.previous ?? null,
+    sharesDelta: shares?.delta ?? null,
+    sharesDeltaPercent: shares?.delta_percent ?? null,
+    lastUpdate,
+  };
 }
 
-export function getTopSongsData(timeframe: string): Array<any> {
-  if (timeframe === "diario") {
-    return [
-      { song: "Midnight Dreams", plays: 1543, saves: 87 },
-      { song: "Electric Soul", plays: 1320, saves: 72 },
-      { song: "Summer Vibes", plays: 1187, saves: 65 },
-      { song: "Urban Nights", plays: 1056, saves: 58 },
-      { song: "Echoes", plays: 982, saves: 51 },
-      { song: "Neon Lights", plays: 894, saves: 43 },
-      { song: "Rhythm & Blues", plays: 821, saves: 39 },
-      { song: "Lost in Paradise", plays: 756, saves: 35 },
-    ];
-  } else if (timeframe === "semanal") {
-    return [
-      { song: "Midnight Dreams", plays: 9821, saves: 542 },
-      { song: "Electric Soul", plays: 8543, saves: 478 },
-      { song: "Summer Vibes", plays: 7892, saves: 423 },
-      { song: "Urban Nights", plays: 6934, saves: 387 },
-      { song: "Echoes", plays: 6321, saves: 351 },
-      { song: "Neon Lights", plays: 5687, saves: 298 },
-      { song: "Rhythm & Blues", plays: 5234, saves: 276 },
-      { song: "Lost in Paradise", plays: 4821, saves: 254 },
-    ];
-  } else {
-    // mensual
-    return [
-      { song: "Midnight Dreams", plays: 42340, saves: 2341 },
-      { song: "Electric Soul", plays: 38920, saves: 2087 },
-      { song: "Summer Vibes", plays: 35680, saves: 1876 },
-      { song: "Urban Nights", plays: 31245, saves: 1654 },
-      { song: "Echoes", plays: 28934, saves: 1532 },
-      { song: "Neon Lights", plays: 25687, saves: 1398 },
-      { song: "Rhythm & Blues", plays: 23456, saves: 1243 },
-      { song: "Lost in Paradise", plays: 21098, saves: 1156 },
-    ];
-  }
+/**
+ * Obtiene las canciones más populares del artista
+ * Transforma la respuesta de la API al formato esperado por los componentes
+ */
+export async function getTopSongsData(
+  artistId: string,
+  timeframe: string,
+  region?: string
+): Promise<Array<any>> {
+  const data = await getArtistMetrics(artistId, timeframe, region);
+  
+  // Transformar de API format a componente format
+  return data.breakdowns.top_songs.map(song => ({
+    song: song.title,
+    plays: song.period_plays, // Usar period_plays para el período actual
+    saves: song.total_likes, // La API usa "total_likes" como "saves"
+  }));
 }
 
-export function getTopMarketsData(timeframe: string): Array<any> {
-  if (timeframe === "diario") {
-    return [
-      { country: "Estados Unidos", listeners: 2843 },
-      { country: "México", listeners: 1654 },
-      { country: "España", listeners: 1432 },
-      { country: "Argentina", listeners: 1287 },
-      { country: "Colombia", listeners: 987 },
-      { country: "Chile", listeners: 823 },
-      { country: "Brasil", listeners: 765 },
-      { country: "Perú", listeners: 654 },
-    ];
-  } else if (timeframe === "semanal") {
-    return [
-      { country: "Estados Unidos", listeners: 18234 },
-      { country: "México", listeners: 11543 },
-      { country: "España", listeners: 9876 },
-      { country: "Argentina", listeners: 8432 },
-      { country: "Colombia", listeners: 6543 },
-      { country: "Chile", listeners: 5432 },
-      { country: "Brasil", listeners: 4987 },
-      { country: "Perú", listeners: 4234 },
-    ];
-  } else {
-    // mensual
-    return [
-      { country: "Estados Unidos", listeners: 78234 },
-      { country: "México", listeners: 48543 },
-      { country: "España", listeners: 42876 },
-      { country: "Argentina", listeners: 36432 },
-      { country: "Colombia", listeners: 28543 },
-      { country: "Chile", listeners: 23432 },
-      { country: "Brasil", listeners: 21987 },
-      { country: "Perú", listeners: 18234 },
-    ];
-  }
+/**
+ * Obtiene los principales mercados del artista
+ * Transforma la respuesta de la API al formato esperado por los componentes
+ */
+export async function getTopMarketsData(
+  artistId: string,
+  timeframe: string,
+  region?: string
+): Promise<Array<any>> {
+  const data = await getArtistMetrics(artistId, timeframe, region);
+  
+  // Transformar de API format a componente format
+  return data.breakdowns.top_markets.map(market => ({
+    country: market.region === "Unknown" ? "Argentina" : market.region,
+    listeners: market.plays,
+  }));
 }
 
-export function getTopPlaylistsData(timeframe: string): Array<any> {
-  if (timeframe === "diario") {
-    return [
-      { playlist: "Top 50 Global", inclusions: 3, reach: 2543000 },
-      { playlist: "Viral Hits", inclusions: 2, reach: 1876000 },
-      { playlist: "Chill Vibes", inclusions: 5, reach: 987000 },
-      { playlist: "Electronic Essentials", inclusions: 4, reach: 765000 },
-      { playlist: "Night Drives", inclusions: 3, reach: 654000 },
-      { playlist: "Indie Discovery", inclusions: 2, reach: 543000 },
-    ];
-  } else if (timeframe === "semanal") {
-    return [
-      { playlist: "Top 50 Global", inclusions: 3, reach: 2543000 },
-      { playlist: "Viral Hits", inclusions: 2, reach: 1876000 },
-      { playlist: "Chill Vibes", inclusions: 5, reach: 987000 },
-      { playlist: "Electronic Essentials", inclusions: 4, reach: 765000 },
-      { playlist: "Night Drives", inclusions: 3, reach: 654000 },
-      { playlist: "Indie Discovery", inclusions: 2, reach: 543000 },
-    ];
-  } else {
-    // mensual
-    return [
-      { playlist: "Top 50 Global", inclusions: 3, reach: 2543000 },
-      { playlist: "Viral Hits", inclusions: 2, reach: 1876000 },
-      { playlist: "Chill Vibes", inclusions: 5, reach: 987000 },
-      { playlist: "Electronic Essentials", inclusions: 4, reach: 765000 },
-      { playlist: "Night Drives", inclusions: 3, reach: 654000 },
-      { playlist: "Indie Discovery", inclusions: 2, reach: 543000 },
-    ];
-  }
+/**
+ * Obtiene las playlists principales donde aparece el artista
+ * Transforma la respuesta de la API al formato esperado por los componentes
+ */
+export async function getTopPlaylistsData(
+  artistId: string,
+  timeframe: string,
+  region?: string
+): Promise<Array<any>> {
+  const data = await getArtistMetrics(artistId, timeframe, region);
+  
+  // Transformar de API format a componente format
+  return data.breakdowns.top_playlists.map(playlist => ({
+    playlist: playlist.name,
+    inclusions: playlist.artist_song_count,
+    reach: 0, // API no provee este dato
+  }));
 }

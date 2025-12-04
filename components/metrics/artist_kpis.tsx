@@ -2,68 +2,118 @@
 
 import { Card, SimpleGrid, Stat, Box, Text, Flex, Icon } from "@chakra-ui/react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { getArtistKPIData } from "@/lib/metrics/artist_metrics";
 
 interface ArtistKPIsProps {
-  timeframe?: "diario" | "semanal" | "mensual";
+  monthlyListeners: number;
+  previousMonthlyListeners: number | null;
+  plays: number;
+  previousPlays: number | null;
+  playsDelta: number | null;
+  playsDeltaPercent: number | null;
+  saves: number;
+  previousSaves: number | null;
+  savesDelta: number | null;
+  savesDeltaPercent: number | null;
+  shares: number;
+  previousShares: number | null;
+  sharesDelta: number | null;
+  sharesDeltaPercent: number | null;
+  lastUpdate: string;
 }
 
 interface KPICardProps {
   label: string;
   value: number;
-  previousValue: number;
+  previousValue?: number | null;
   formatValue?: (val: number) => string;
+  showDelta?: boolean;
+  deltaOverride?: number | null;
+  percentOverride?: number | null;
+  labelFontSize?: string | number;
+  valueFontSize?: string | number;
 }
 
-function KPICard({ label, value, previousValue, formatValue }: KPICardProps) {
-  const delta = value - previousValue;
-  const percentChange = previousValue > 0 ? ((delta / previousValue) * 100) : 0;
-  const isPositive = delta >= 0;
+function KPICard({ label, value, previousValue, formatValue, showDelta = true, deltaOverride, percentOverride, labelFontSize, valueFontSize }: KPICardProps) {
+  const previous = typeof previousValue === "number" ? previousValue : null;
+  const delta = typeof deltaOverride === "number" ? deltaOverride : previous !== null ? value - previous : null;
+  const percentChange =
+    typeof percentOverride === "number"
+      ? percentOverride
+      : delta !== null && previous !== null && previous !== 0
+        ? (delta / previous) * 100
+        : null;
+  const trendColor = delta !== null
+    ? delta >= 0 ? "green.400" : "red.400"
+    : percentChange !== null
+      ? percentChange >= 0 ? "green.400" : "red.400"
+      : "gray.400";
 
   const formattedValue = formatValue ? formatValue(value) : value.toLocaleString("es-ES");
-  const formattedDelta = formatValue ? formatValue(Math.abs(delta)) : Math.abs(delta).toLocaleString("es-ES");
+  const formattedDelta = delta !== null
+    ? (formatValue ? formatValue(Math.abs(delta)) : Math.abs(delta).toLocaleString("es-ES"))
+    : null;
 
   return (
     <Card.Root bg="gray.800" borderColor="gray.700" p={6}>
       <Card.Body>
         <Stat.Root>
-          <Stat.Label color="gray.400" fontSize="sm" mb={2}>
+          <Text as="div" color="gray.400" fontSize={labelFontSize ?? "xl"} mb={2}>
             {label}
-          </Stat.Label>
-          <Stat.ValueText color="white" fontSize="3xl" fontWeight="bold" mb={2}>
+          </Text>
+          <Text as="div" color="white" fontSize={valueFontSize ?? "4xl"} fontWeight="bold" mb={2}>
             {formattedValue}
-          </Stat.ValueText>
-          <Flex align="center" gap={2}>
-            <Flex
-              align="center"
-              gap={1}
-              color={isPositive ? "green.400" : "red.400"}
-              fontSize="sm"
-              fontWeight="medium"
-            >
-              <Icon fontSize="xs">
-                {isPositive ? <FaArrowUp /> : <FaArrowDown />}
-              </Icon>
-              <Text>{formattedDelta}</Text>
+          </Text>
+          {showDelta && (formattedDelta !== null || percentChange !== null) && (
+            <Flex align="center" gap={2}>
+              {formattedDelta !== null && (
+                <Flex
+                  align="center"
+                  gap={1}
+                  color={trendColor}
+                  fontSize="sm"
+                  fontWeight="medium"
+                >
+                  <Icon fontSize="xs">
+                    {delta !== null && delta >= 0 ? <FaArrowUp /> : <FaArrowDown />}
+                  </Icon>
+                  <Text>{formattedDelta}</Text>
+                </Flex>
+              )}
+              {percentChange !== null && (
+                <Text
+                  color={trendColor}
+                  fontSize="sm"
+                  fontWeight="medium"
+                >
+                  ({percentChange >= 0 ? "+" : "-"}
+                  {Math.abs(percentChange).toFixed(1)}%)
+                </Text>
+              )}
             </Flex>
-            <Text
-              color={isPositive ? "green.400" : "red.400"}
-              fontSize="sm"
-              fontWeight="medium"
-            >
-              ({isPositive ? "+" : "-"}
-              {Math.abs(percentChange).toFixed(1)}%)
-            </Text>
-          </Flex>
+          )}
         </Stat.Root>
       </Card.Body>
     </Card.Root>
   );
 }
 
-export default function ArtistKPIs({ timeframe = "mensual" }: ArtistKPIsProps) {
-  const data = getArtistKPIData(timeframe);
-
+export default function ArtistKPIs({
+  monthlyListeners,
+  previousMonthlyListeners,
+  plays,
+  previousPlays,
+  playsDelta,
+  playsDeltaPercent,
+  saves,
+  previousSaves,
+  savesDelta,
+  savesDeltaPercent,
+  shares,
+  previousShares,
+  sharesDelta,
+  sharesDeltaPercent,
+  lastUpdate,
+}: ArtistKPIsProps) {
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
@@ -75,40 +125,42 @@ export default function ArtistKPIs({ timeframe = "mensual" }: ArtistKPIsProps) {
 
   return (
     <Box>
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 5 }} gap={4} mb={4}>
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={4} mb={4}>
         <KPICard
           label="Oyentes Mensuales"
-          value={data.monthlyListeners}
-          previousValue={data.previousMonthlyListeners}
+          value={monthlyListeners}
+          previousValue={previousMonthlyListeners}
           formatValue={formatNumber}
-        />
-        <KPICard
-          label="Seguidores"
-          value={data.followers}
-          previousValue={data.previousFollowers}
-          formatValue={formatNumber}
+          showDelta={false}
+          valueFontSize="6xl"
         />
         <KPICard
           label="Reproducciones"
-          value={data.plays}
-          previousValue={data.previousPlays}
+          value={plays}
+          previousValue={previousPlays}
           formatValue={formatNumber}
+          deltaOverride={playsDelta}
+          percentOverride={playsDeltaPercent}
         />
         <KPICard
-          label="Guardados"
-          value={data.saves}
-          previousValue={data.previousSaves}
+          label="Likes"
+          value={saves}
+          previousValue={previousSaves}
           formatValue={formatNumber}
+          deltaOverride={savesDelta}
+          percentOverride={savesDeltaPercent}
         />
         <KPICard
           label="Compartidos"
-          value={data.shares}
-          previousValue={data.previousShares}
+          value={shares}
+          previousValue={previousShares}
           formatValue={formatNumber}
+          deltaOverride={sharesDelta}
+          percentOverride={sharesDeltaPercent}
         />
       </SimpleGrid>
       <Text color="gray.500" fontSize="xs" textAlign="right">
-        Última actualización: {data.lastUpdate}
+        Última actualización: {lastUpdate}
       </Text>
     </Box>
   );

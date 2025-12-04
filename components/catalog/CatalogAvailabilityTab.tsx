@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FaEdit } from "react-icons/fa";
 import { getAvailabilityById, AvailabilityDetails } from "@/lib/catalog/availabilityDetails";
 import { WorldAvailabilityMap } from "./WorldAvailabilityMap";
+import { getStatusLabel, getStatusPalette } from "@/lib/utils/effectiveStatus";
 
 interface CatalogAvailabilityTabProps {
   id: string;
@@ -56,37 +57,10 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
     );
   }
 
-  // Helper function to get status color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'green';
-      case 'scheduled':
-        return 'blue';
-      case 'region_restricted':
-        return 'orange';
-      case 'blocked_by_admin':
-        return 'red';
-      default:
-        return 'gray';
-    }
-  };
+  // Usar helper compartido para obtener paleta de color
+  const statusPalette = getStatusPalette(availability.effectiveStatus ?? "");
 
-  // Helper function to get status label
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'Publicado';
-      case 'scheduled':
-        return 'Programado';
-      case 'region_restricted':
-        return 'No disponible en región';
-      case 'blocked_by_admin':
-        return 'Bloqueado por admin';
-      default:
-        return status;
-    }
-  };
+
 
   // Helper function to format date
   const formatDate = (dateString: string | null | undefined) => {
@@ -107,7 +81,7 @@ export function CatalogAvailabilityTab({ id, type }: CatalogAvailabilityTabProps
         {/* Estado efectivo */}
         <Box>
           <Text fontWeight={600} mb={2}>Estado Efectivo</Text>
-          <Badge colorPalette={getStatusColor(availability.effectiveStatus)} fontSize="md" px={3} py={1}>
+          <Badge colorPalette={statusPalette} fontSize="md" px={3} py={1}>
             {getStatusLabel(availability.effectiveStatus)}
           </Badge>
           {availability.effectiveStatus === 'scheduled' && availability.scheduledAt && (
