@@ -138,7 +138,11 @@ export default function PanelUsuarioPage() {
         </Flex>
 
         <ActiveUsersGraph timeframe={timeframe} data={activeUsersData} />
-        <NewUsersGraph timeframe={timeframe} data={newUsersData} />
+        <NewUsersGraph 
+          timeframe={timeframe} 
+          data={newUsersData}
+          onTitleClick={() => router.push("/admin/userpanel/details")}
+        />
 
         <Flex justify="flex-end" mt={4}>
           <Button onClick={handleExportToExcel} colorScheme="green" size="lg" loading={isExporting}>

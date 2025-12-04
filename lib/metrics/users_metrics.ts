@@ -11,9 +11,15 @@ interface UsersMetricApiEntry {
   count: number;
 }
 
+interface RegionalMetricEntry {
+  region: string;
+  metrics: UsersMetricApiEntry[];
+}
+
 interface UsersMetricsApiResponse {
   registered_users?: UsersMetricApiEntry[];
   users_logged_in?: UsersMetricApiEntry[];
+  registered_users_by_region?: RegionalMetricEntry[];
 }
 
 const TIMEFRAME_TO_PERIOD: Record<UsersMetricsTimeframe, UsersMetricsPeriod> = {
@@ -161,6 +167,82 @@ export async function getNewUsersData(timeframe: UsersMetricsTimeframe): Promise
     return transformEntries(metrics.registered_users ?? [], timeframe);
   } catch (error) {
     console.error("Error obteniendo métricas de nuevos usuarios", error);
+    return [];
+  }
+}
+
+/**
+ * Obtiene datos de nuevos usuarios registrados por región desde la API real
+ */
+export async function getNewUsersByRegionData(timeframe: UsersMetricsTimeframe): Promise<Array<any>> {
+  try {
+    const metrics = await getUsersMetrics(timeframe);
+    const regionalData = metrics.registered_users_by_region ?? [];
+
+    // Transform regional data into format suitable for multi-line chart
+    const periodMap = new Map<string, any>();
+
+    // Collect all unique periods and prepare data structure
+    regionalData.forEach((regionEntry) => {
+      const sortedMetrics = sortEntries(regionEntry.metrics, timeframe);
+
+      sortedMetrics.forEach((metricEntry) => {
+        const axisValue = timeframe === "mensual" 
+          ? formatMonthlyLabel(metricEntry.period) 
+          : metricEntry.period;
+
+        if (!periodMap.has(axisValue)) {
+          const key = timeframe === "diario" 
+            ? "date" 
+            : timeframe === "semanal" 
+            ? "weekStart" 
+            : "month";
+          
+          periodMap.set(axisValue, { [key]: axisValue });
+        }
+
+        const periodData = periodMap.get(axisValue);
+        periodData[regionEntry.region] = metricEntry.count;
+      });
+    });
+
+    // Get all unique regions to ensure consistent data structure
+    const allRegions = new Set<string>();
+    regionalData.forEach((regionEntry) => {
+      allRegions.add(regionEntry.region);
+    });
+
+    // Convert map to array and fill missing values with 0
+    const entries = Array.from(periodMap.values()).map((entry) => {
+      const filledEntry = { ...entry };
+      allRegions.forEach((region) => {
+        if (filledEntry[region] === undefined) {
+          filledEntry[region] = 0;
+        }
+      });
+      return filledEntry;
+    });
+    
+    return entries.sort((a, b) => {
+      const keyA = a.date || a.weekStart || a.month;
+      const keyB = b.date || b.weekStart || b.month;
+      
+      // For monthly data, compare by original format
+      if (timeframe === "mensual") {
+        return keyA.localeCompare(keyB);
+      }
+      
+      const dateA = new Date(keyA).getTime();
+      const dateB = new Date(keyB).getTime();
+      
+      if (Number.isNaN(dateA) || Number.isNaN(dateB)) {
+        return keyA.localeCompare(keyB);
+      }
+      
+      return dateA - dateB;
+    });
+  } catch (error) {
+    console.error("Error obteniendo métricas de nuevos usuarios por región", error);
     return [];
   }
 }
