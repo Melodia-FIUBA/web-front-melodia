@@ -44,6 +44,55 @@ interface KPIData {
   lastUpdate: string;
 }
 
+type ExcelSheetRow = Record<string, string | number>;
+
+interface ExcelSheetDefinition {
+  sheetName: string;
+  data: ExcelSheetRow[];
+}
+const buildKpiSheetData = (data: KPIData): ExcelSheetRow[] => {
+  const safeValue = (value: number | null | undefined): string | number =>
+    value ?? "";
+
+  return [
+    {
+      Indicador: "Oyentes Mensuales",
+      "Valor Actual": data.monthlyListeners,
+      "Valor Anterior": safeValue(data.previousMonthlyListeners),
+      Delta: "",
+      "Delta %": "",
+    },
+    {
+      Indicador: "Reproducciones",
+      "Valor Actual": data.plays,
+      "Valor Anterior": safeValue(data.previousPlays),
+      Delta: safeValue(data.playsDelta),
+      "Delta %": safeValue(data.playsDeltaPercent),
+    },
+    {
+      Indicador: "Likes",
+      "Valor Actual": data.saves,
+      "Valor Anterior": safeValue(data.previousSaves),
+      Delta: safeValue(data.savesDelta),
+      "Delta %": safeValue(data.savesDeltaPercent),
+    },
+    {
+      Indicador: "Compartidos",
+      "Valor Actual": data.shares,
+      "Valor Anterior": safeValue(data.previousShares),
+      Delta: safeValue(data.sharesDelta),
+      "Delta %": safeValue(data.sharesDeltaPercent),
+    },
+    {
+      Indicador: "Última actualización",
+      "Valor Actual": data.lastUpdate,
+      "Valor Anterior": "",
+      Delta: "",
+      "Delta %": "",
+    },
+  ];
+};
+
 export default function PanelArtistPage() {
   const router = useRouter();
   const params = useParams();
@@ -104,18 +153,29 @@ export default function PanelArtistPage() {
   }, [artistId, timeframe]);
 
   const handleExportToExcel = () => {
-    if (!topSongs.length && !topMarkets.length && !topPlaylists.length) {
+    const sheets: ExcelSheetDefinition[] = [];
+
+    if (kpiData) {
+      sheets.push({ sheetName: "KPIs", data: buildKpiSheetData(kpiData) });
+    }
+
+    if (topSongs.length) {
+      sheets.push({ sheetName: "Top Canciones", data: topSongs });
+    }
+
+    if (topMarkets.length) {
+      sheets.push({ sheetName: "Top Mercados", data: topMarkets });
+    }
+
+    if (topPlaylists.length) {
+      sheets.push({ sheetName: "Top Playlists", data: topPlaylists });
+    }
+
+    if (!sheets.length) {
       return;
     }
 
-    exportToExcel(
-      [
-        { sheetName: "Top Canciones", data: topSongs },
-        { sheetName: "Top Mercados", data: topMarkets },
-        { sheetName: "Top Playlists", data: topPlaylists },
-      ],
-      `metricas-artista-${timeframe}`
-    );
+    exportToExcel(sheets, `metricas-artista-${timeframe}`);
   };
 
   if (!isAdminLoggedIn()) {
