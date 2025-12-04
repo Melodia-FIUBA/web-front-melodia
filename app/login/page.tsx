@@ -19,6 +19,7 @@ import { toaster } from "@/components/ui/toaster";
 import { FormValues, validateAdminLogin } from "@/lib/log/login";
 import { Suspense } from "react";
 import LoadBackgroundElement from "@/components/ui/loadElements";
+import BackgroundImageBox from "@/components/ui/BackgroundImageBox";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -55,11 +56,11 @@ export default function LoginPage() {
 
   return (
     <Suspense fallback={<LoadBackgroundElement />}>
-      <Box
+      <BackgroundImageBox
         minH="100vh"
-        bgImage="url('/melodia-background.png')"
+        imageUrl="/melodia-background.png"
         bgSize="cover"
-        bgPos={"center"}
+        bgPos="center"
         bgRepeat="no-repeat"
         fontFamily="sans"
       >
@@ -107,7 +108,7 @@ export default function LoginPage() {
             </Flex>
           </Box>
         </Box>
-      </Box>
+      </BackgroundImageBox>
     </Suspense>
   );
 }

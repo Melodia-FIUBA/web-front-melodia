@@ -1,6 +1,7 @@
 "use client";
 
 import LoadBackgroundElement from "@/components/ui/loadElements";
+import BackgroundImageBox from "@/components/ui/BackgroundImageBox";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 
 import { Box, Flex, Heading, Text } from "@chakra-ui/react";
@@ -23,14 +24,14 @@ export default function AdminPage() {
   return (
     <Flex direction="column" gap={4}>
       <Suspense fallback={<LoadBackgroundElement size="menu" />}>
-        <Box
+        <BackgroundImageBox
           minH="90vh"
-          bgImage="url('/melodia-admin-background.png')"
+          imageUrl="/melodia-admin-background.png"
           bgSize="contain"
           bgPos="left center"
           bgRepeat="no-repeat"
           fontFamily="sans"
-          backgroundColor={"black"}
+          backgroundColor="black"
         >
           <Flex
             h="100%"
@@ -57,7 +58,7 @@ export default function AdminPage() {
               Seleccione una opción en la barra superior
             </Text>
           </Flex>
-        </Box>
+        </BackgroundImageBox>
       </Suspense>
     </Flex>
   );
