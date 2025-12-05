@@ -152,6 +152,9 @@ export async function auditCollectionById(id: string, _type: string): Promise<Au
       const user = await getUserById(event.changed_by_user_id);
       // mientras no se de el caso de un evento buggy que no corresponde a un cambio real del backoffice
       if (!(event.event_type === 'updated' && 'artist_blocked_regions' in event.changes === false && 'release_date' in event.changes === false)) {
+        if ((event.event_type === 'created')) {
+          continue;
+        }
         auditEvents.push({
           event_type: event.event_type,
           event_label: getEventLabel(event.event_type),
@@ -201,6 +204,9 @@ export async function auditSongById(id: string, _type: string): Promise<AuditEve
     for (const event of body.events) {
       const user = await getUserById(event.changed_by_user_id);
       if (!(event.event_type === 'updated' && 'artist_blocked_regions' in event.changes === false && 'release_date' in event.changes === false)) {
+        if ((event.event_type === 'created')) {
+          continue;
+        }
         auditEvents.push({
           event_type: event.event_type,
           event_label: getEventLabel(event.event_type),

@@ -15,9 +15,7 @@ export default function PanelUsuarioPage() {
   const router = useRouter();
   const [timeframe, setTimeframe] = useState<"diario" | "semanal" | "mensual">("mensual");
   const [isExporting, setIsExporting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activeUsersData, setActiveUsersData] = useState<Array<any>>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [newUsersData, setNewUsersData] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -140,7 +138,11 @@ export default function PanelUsuarioPage() {
         </Flex>
 
         <ActiveUsersGraph timeframe={timeframe} data={activeUsersData} />
-        <NewUsersGraph timeframe={timeframe} data={newUsersData} />
+        <NewUsersGraph 
+          timeframe={timeframe} 
+          data={newUsersData}
+          onTitleClick={() => router.push("/admin/userpanel/details")}
+        />
 
         <Flex justify="flex-end" mt={4}>
           <Button onClick={handleExportToExcel} colorScheme="green" size="lg" loading={isExporting}>

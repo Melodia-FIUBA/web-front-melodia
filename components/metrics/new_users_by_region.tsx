@@ -8,41 +8,60 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts";
 import { getISOWeek as getWeekLabel } from "./utils";
 import { Card, Heading } from "@chakra-ui/react";
 
-interface NewUsersGraphProps {
+interface NewUsersByRegionGraphProps {
   timeframe?: "diario" | "semanal" | "mensual";
   data?: Array<any>;
-  onTitleClick?: () => void;
 }
 
-export default function NewUsersGraph({ 
+// Color palette for different regions
+const REGION_COLORS = [
+  "blue.solid",
+  "green.solid",
+  "purple.solid",
+  "orange.solid",
+  "red.solid",
+  "teal.solid",
+  "pink.solid",
+  "cyan.solid",
+];
+
+export default function NewUsersByRegionGraph({ 
   timeframe = "mensual", 
-  data = [],
-  onTitleClick 
-}: NewUsersGraphProps) {
+  data = [] 
+}: NewUsersByRegionGraphProps) {
+  // Extract all region names (keys that are not date/weekStart/month)
+  const regionNames = data.length > 0 
+    ? Object.keys(data[0]).filter(key => !["date", "weekStart", "month"].includes(key))
+    : [];
+
+  // Build series dynamically based on regions present in data
+  const series = regionNames.map((region, index) => ({
+    name: region,
+    color: REGION_COLORS[index % REGION_COLORS.length],
+  }));
+
   const chart = useChart({
     data,
-    series: [{ name: "usuarios", color: "blue.solid" }],
+    series,
   });
 
-  // Determinar la key del eje X según el timeframe
-  const xAxisKey: string = timeframe === "diario" ? "date" : timeframe === "semanal" ? "weekStart" : "month";
+  // Determine the key for X axis based on timeframe
+  const xAxisKey: string = timeframe === "diario" 
+    ? "date" 
+    : timeframe === "semanal" 
+    ? "weekStart" 
+    : "month";
 
   return (
     <Card.Root bg="gray.800" borderColor="gray.700" p={6}>
       <Card.Body>
-        <Heading 
-          size="lg" 
-          color="white" 
-          mb={4}
-          cursor={onTitleClick ? "pointer" : "default"}
-          _hover={onTitleClick ? { color: "blue.300", textDecoration: "underline" } : {}}
-          onClick={onTitleClick}
-        >
-          Nuevos Registros de Usuarios
+        <Heading size="lg" color="white" mb={4}>
+          Nuevos Registros de Usuarios (Desglosado por Región)
         </Heading>
       </Card.Body>
 
@@ -74,6 +93,7 @@ export default function NewUsersGraph({
             cursor={false}
             content={<Chart.Tooltip />}
           />
+          <Legend />
           {chart.series.map((item) => (
             <Line
               key={item.name as string}
@@ -82,6 +102,8 @@ export default function NewUsersGraph({
               stroke={chart.color(item.color)}
               strokeWidth={2}
               dot={false}
+              name={item.name as string}
+              connectNulls={true}
             />
           ))}
         </LineChart>

@@ -4,7 +4,7 @@ import LoadBackgroundElement from "@/components/ui/loadElements";
 import BackgroundImageBox from "@/components/ui/BackgroundImageBox";
 import { isAdminLoggedIn } from "@/lib/log/cookies";
 
-import { Box, Flex, Heading, Text } from "@chakra-ui/react";
+import { Flex, Heading, Text } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 

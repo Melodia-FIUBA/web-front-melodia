@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { getRuntimeConfig } from "../config/envs";
 import { getToken } from "../log/cookies";
 

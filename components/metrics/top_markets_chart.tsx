@@ -27,7 +27,7 @@ export default function TopMarketsChart({ data }: TopMarketsChartProps) {
     <Card.Root bg="gray.800" borderColor="gray.700" p={6}>
       <Card.Body>
         <Heading size="lg" color="white" mb={4}>
-          Top Mercados (por Oyentes)
+          Top Mercados (por Reproducciones)
         </Heading>
       </Card.Body>
 

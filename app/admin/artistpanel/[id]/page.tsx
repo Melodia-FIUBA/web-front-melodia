@@ -14,7 +14,7 @@ import {
   Spinner,
   Text,
 } from "@chakra-ui/react";
-import { FaFileExcel } from "react-icons/fa";
+import { FaFileExcel, FaArrowLeft } from "react-icons/fa";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -105,11 +105,8 @@ export default function PanelArtistPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [kpiData, setKpiData] = useState<KPIData | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topSongs, setTopSongs] = useState<Array<any>>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topMarkets, setTopMarkets] = useState<Array<any>>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topPlaylists, setTopPlaylists] = useState<Array<any>>([]);
 
   useEffect(() => {
@@ -184,12 +181,35 @@ export default function PanelArtistPage() {
 
   if (loading) {
     return (
-      <Box p={6} borderRadius="lg" textAlign="center" py={8}>
-        <Spinner />
-        <Text mt={2} color="gray.600">
-          Cargando políticas del contenido...
-        </Text>
-        <LoadBackgroundElement size="users_menu"></LoadBackgroundElement>
+      <Box minH="90vh" p={8}>
+        <Flex justify="space-between" align="center" mb={6}>
+          <Heading size="2xl" color="white">
+            Panel de Métricas del Artista
+          </Heading>
+
+          <Flex align="center" gap={4}>
+            {/* Placeholder for where the filter will appear (swapped) */}
+            <Box width="200px" />
+
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/admin/users/${artistId}`)}
+            >
+              <FaArrowLeft />
+              <Box as="span" ml={2}>
+                Volver al Perfil
+              </Box>
+            </Button>
+          </Flex>
+        </Flex>
+
+        <Box p={6} borderRadius="lg" textAlign="center" py={8}>
+          <Spinner />
+          <Text mt={2} color="gray.600">
+            Cargando Panel de Métricas del Artista...
+          </Text>
+          <LoadBackgroundElement size="users_menu"></LoadBackgroundElement>
+        </Box>
       </Box>
     );
   }
@@ -218,19 +238,33 @@ export default function PanelArtistPage() {
             Panel de Métricas del Artista
           </Heading>
 
-          <NativeSelect.Root size="md" width="200px">
-            <NativeSelect.Field
-              value={timeframe}
-              onChange={(e) =>
-                setTimeframe(e.target.value as "diario" | "semanal" | "mensual")
-              }
+          <Flex align="center" gap={4}>
+            <NativeSelect.Root size="md" width="200px">
+              <NativeSelect.Field
+                value={timeframe}
+                onChange={(e) =>
+                  setTimeframe(
+                    e.target.value as "diario" | "semanal" | "mensual"
+                  )
+                }
+              >
+                <option value="diario">Diario</option>
+                <option value="semanal">Semanal</option>
+                <option value="mensual">Mensual</option>
+              </NativeSelect.Field>
+              <NativeSelect.Indicator />
+            </NativeSelect.Root>
+
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/admin/users/${artistId}`)}
             >
-              <option value="diario">Diario</option>
-              <option value="semanal">Semanal</option>
-              <option value="mensual">Mensual</option>
-            </NativeSelect.Field>
-            <NativeSelect.Indicator />
-          </NativeSelect.Root>
+              <FaArrowLeft />
+              <Box as="span" ml={2}>
+                Volver al Perfil
+              </Box>
+            </Button>
+          </Flex>
         </Flex>
 
         {kpiData && (
