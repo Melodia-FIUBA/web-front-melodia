@@ -185,6 +185,8 @@ export async function getNewUsersByRegionData(timeframe: UsersMetricsTimeframe):
     // Collect all unique periods and prepare data structure
     regionalData.forEach((regionEntry) => {
       const sortedMetrics = sortEntries(regionEntry.metrics, timeframe);
+      // Convert "Sin región" to "Argentina"
+      const regionName = regionEntry.region === "Sin región" ? "Argentina" : regionEntry.region;
 
       sortedMetrics.forEach((metricEntry) => {
         const axisValue = timeframe === "mensual" 
@@ -202,14 +204,16 @@ export async function getNewUsersByRegionData(timeframe: UsersMetricsTimeframe):
         }
 
         const periodData = periodMap.get(axisValue);
-        periodData[regionEntry.region] = metricEntry.count;
+        periodData[regionName] = metricEntry.count;
       });
     });
 
     // Get all unique regions to ensure consistent data structure
     const allRegions = new Set<string>();
     regionalData.forEach((regionEntry) => {
-      allRegions.add(regionEntry.region);
+      // Convert "Sin región" to "Argentina"
+      const regionName = regionEntry.region === "Sin región" ? "Argentina" : regionEntry.region;
+      allRegions.add(regionName);
     });
 
     // Convert map to array and fill missing values with 0
